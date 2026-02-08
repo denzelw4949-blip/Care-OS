@@ -23,210 +23,206 @@ app.use(cors());
 
 // Handlers moved to top
 
-// Mount Slack webhooks BEFORE body parsers (Slack needs raw body)
-// This handles /webhooks/slack/events, /webhooks/slack/commands etc.
-// The receiver is initialized with defaults, so we need to route explicitly if we want custom paths
-// But bolt's ExpressReceiver creates a router. We can mount it.
-// We'll stick to the standard /slack/events pattern or what the user configured.
-// User configured /webhooks/slack/events etc.
-// Load Slack app dynamically to ensure error handlers are active during initialization
+// Load Slack app dynamically (using IIFE to handle async)
 let slackApp;
-try {
-    const module = await import('./integrations/slack/slackApp.js');
-    slackApp = module.default;
-} catch (err) {
-    console.error('Failed to load Slack App:', err);
-    // Create a dummy receiver to prevent server crash if Slack config is bad
-    slackApp = {
-        receiver: {
-            router: (req, res, next) => next()
-        }
+(async () => {
+    try {
+        const module = await import('./integrations/slack/slackApp.js');
+        slackApp = module.default;
+    } catch (err) {
+        console.error('Failed to load Slack App:', err);
+        // Create a dummy receiver to prevent server crash if Slack config is bad
+        slackApp = {
+            receiver: {
+                router: (req, res, next) => next()
+            }
+        };
+    }
+
+    // Mount Slack webhooks AFTER loading
+    app.use('/webhooks/slack', slackApp.receiver.router);
+
+    app.use(express.json());
+
+    // Serve static files (admin dashboard)
+    app.use(express.static('.'));
+
+    // In-memory data store
+    const mockData = {
+        users: [],
+        checkins: [],
+        tasks: [],
+        recognitions: [],
+        deviations: [],
+        insights: []
     };
-}
-// ------------------------
-app.use('/webhooks/slack', slackApp.receiver.router);
 
-app.use(express.json());
-
-// Serve static files (admin dashboard)
-app.use(express.static('.'));
-
-// In-memory data store
-const mockData = {
-    users: [],
-    checkins: [],
-    tasks: [],
-    recognitions: [],
-    deviations: [],
-    insights: []
-};
-
-// Health check
-app.get('/health', (req, res) => {
-    res.json({
-        status: 'healthy',
-        message: 'CARE OS is running in demo mode',
-        timestamp: new Date().toISOString(),
-        mode: 'in-memory (no database required)'
+    // Health check
+    app.get('/health', (req, res) => {
+        res.json({
+            status: 'healthy',
+            message: 'CARE OS is running in demo mode',
+            timestamp: new Date().toISOString(),
+            mode: 'in-memory (no database required)'
+        });
     });
-});
 
-// Check-ins API
-app.post('/api/checkins', (req, res) => {
-    const checkin = {
-        id: Date.now(),
-        ...req.body,
-        createdAt: new Date().toISOString()
-    };
-    mockData.checkins.push(checkin);
-    res.status(201).json({
-        success: true,
-        checkin,
-        message: 'Check-in recorded successfully'
+    // Check-ins API
+    app.post('/api/checkins', (req, res) => {
+        const checkin = {
+            id: Date.now(),
+            ...req.body,
+            createdAt: new Date().toISOString()
+        };
+        mockData.checkins.push(checkin);
+        res.status(201).json({
+            success: true,
+            checkin,
+            message: 'Check-in recorded successfully'
+        });
     });
-});
 
-app.get('/api/checkins', (req, res) => {
-    res.json({
-        success: true,
-        checkins: mockData.checkins,
-        count: mockData.checkins.length
-    });
-});
-
-// Tasks API
-app.post('/api/tasks', (req, res) => {
-    const task = {
-        id: Date.now(),
-        ...req.body,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-    };
-    mockData.tasks.push(task);
-    res.status(201).json({
-        success: true,
-        task,
-        message: 'Task created successfully'
-    });
-});
-
-app.get('/api/tasks', (req, res) => {
-    res.json({
-        success: true,
-        tasks: mockData.tasks,
-        count: mockData.tasks.length
-    });
-});
-
-app.put('/api/tasks/:id/complete', (req, res) => {
-    const task = mockData.tasks.find(t => t.id == req.params.id);
-    if (task) {
-        task.status = 'completed';
-        task.completedAt = new Date().toISOString();
+    app.get('/api/checkins', (req, res) => {
         res.json({
             success: true,
-            task,
-            message: 'Task completed!'
+            checkins: mockData.checkins,
+            count: mockData.checkins.length
         });
-    } else {
-        res.status(404).json({ error: 'Task not found' });
-    }
-});
-
-// Recognitions API
-app.post('/api/recognitions', (req, res) => {
-    const recognition = {
-        id: Date.now(),
-        ...req.body,
-        createdAt: new Date().toISOString()
-    };
-    mockData.recognitions.push(recognition);
-    res.status(201).json({
-        success: true,
-        recognition,
-        message: 'Recognition sent successfully!'
     });
-});
 
-app.get('/api/recognitions', (req, res) => {
-    res.json({
-        success: true,
-        recognitions: mockData.recognitions,
-        count: mockData.recognitions.length
+    // Tasks API
+    app.post('/api/tasks', (req, res) => {
+        const task = {
+            id: Date.now(),
+            ...req.body,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        mockData.tasks.push(task);
+        res.status(201).json({
+            success: true,
+            task,
+            message: 'Task created successfully'
+        });
     });
-});
 
-// Deviations API (Manager only - demo mode)
-app.get('/api/deviations', (req, res) => {
-    res.json({
-        success: true,
-        deviations: mockData.deviations,
-        count: mockData.deviations.length,
-        note: 'Demo mode - showing sample deviation alerts'
+    app.get('/api/tasks', (req, res) => {
+        res.json({
+            success: true,
+            tasks: mockData.tasks,
+            count: mockData.tasks.length
+        });
     });
-});
 
-// AI Insights API (demo mode)
-app.post('/api/insights/team-wellbeing', (req, res) => {
-    const insight = {
-        id: Date.now(),
-        type: 'team_wellbeing',
-        content: 'Team energy levels are consistent. Consider scheduling team building activities to boost morale.',
-        advisoryOnly: true,
-        requiresHumanReview: true,
-        createdAt: new Date().toISOString(),
-        disclaimer: 'This is a demo insight. In production, this would be generated by AI with ethical guardrails.'
-    };
-    mockData.insights.push(insight);
-    res.json({
-        success: true,
-        insight
+    app.put('/api/tasks/:id/complete', (req, res) => {
+        const task = mockData.tasks.find(t => t.id == req.params.id);
+        if (task) {
+            task.status = 'completed';
+            task.completedAt = new Date().toISOString();
+            res.json({
+                success: true,
+                task,
+                message: 'Task completed!'
+            });
+        } else {
+            res.status(404).json({ error: 'Task not found' });
+        }
     });
-});
 
-app.get('/api/insights', (req, res) => {
-    res.json({
-        success: true,
-        insights: mockData.insights,
-        count: mockData.insights.length
+    // Recognitions API
+    app.post('/api/recognitions', (req, res) => {
+        const recognition = {
+            id: Date.now(),
+            ...req.body,
+            createdAt: new Date().toISOString()
+        };
+        mockData.recognitions.push(recognition);
+        res.status(201).json({
+            success: true,
+            recognition,
+            message: 'Recognition sent successfully!'
+        });
     });
-});
 
-// Stats endpoint
-app.get('/api/stats', (req, res) => {
-    res.json({
-        success: true,
-        stats: {
-            totalUsers: mockData.users.length,
-            checkinsToday: mockData.checkins.length,
-            activeTasks: mockData.tasks.filter(t => t.status === 'pending').length,
-            recognitions: mockData.recognitions.length,
-            deviationAlerts: mockData.deviations.length
-        },
-        mode: 'demo (in-memory storage)'
+    app.get('/api/recognitions', (req, res) => {
+        res.json({
+            success: true,
+            recognitions: mockData.recognitions,
+            count: mockData.recognitions.length
+        });
     });
-});
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        error: 'Not Found',
-        message: `Cannot ${req.method} ${req.path}`
+    // Deviations API (Manager only - demo mode)
+    app.get('/api/deviations', (req, res) => {
+        res.json({
+            success: true,
+            deviations: mockData.deviations,
+            count: mockData.deviations.length,
+            note: 'Demo mode - showing sample deviation alerts'
+        });
     });
-});
 
-// Error handler
-app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).json({
-        error: 'Internal Server Error',
-        message: err.message
+    // AI Insights API (demo mode)
+    app.post('/api/insights/team-wellbeing', (req, res) => {
+        const insight = {
+            id: Date.now(),
+            type: 'team_wellbeing',
+            content: 'Team energy levels are consistent. Consider scheduling team building activities to boost morale.',
+            advisoryOnly: true,
+            requiresHumanReview: true,
+            createdAt: new Date().toISOString(),
+            disclaimer: 'This is a demo insight. In production, this would be generated by AI with ethical guardrails.'
+        };
+        mockData.insights.push(insight);
+        res.json({
+            success: true,
+            insight
+        });
     });
-});
 
-// Start server - BINDING TO 0.0.0.0 FOR RAILWAY
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`
+    app.get('/api/insights', (req, res) => {
+        res.json({
+            success: true,
+            insights: mockData.insights,
+            count: mockData.insights.length
+        });
+    });
+
+    // Stats endpoint
+    app.get('/api/stats', (req, res) => {
+        res.json({
+            success: true,
+            stats: {
+                totalUsers: mockData.users.length,
+                checkinsToday: mockData.checkins.length,
+                activeTasks: mockData.tasks.filter(t => t.status === 'pending').length,
+                recognitions: mockData.recognitions.length,
+                deviationAlerts: mockData.deviations.length
+            },
+            mode: 'demo (in-memory storage)'
+        });
+    });
+
+    // 404 handler
+    app.use((req, res) => {
+        res.status(404).json({
+            error: 'Not Found',
+            message: `Cannot ${req.method} ${req.path}`
+        });
+    });
+
+    // Error handler
+    app.use((err, req, res, next) => {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: err.message
+        });
+    });
+
+    // Start server - BINDING TO 0.0.0.0 FOR RAILWAY
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║                                                          ║
 ║   🏥 CARE OS - Human-Centered Wellbeing System          ║
@@ -257,6 +253,6 @@ app.listen(PORT, '0.0.0.0', () => {
 ║                                                          ║
 ╚══════════════════════════════════════════════════════════╝
   `);
-});
+    });
 
-export default app;
+    export default app;
