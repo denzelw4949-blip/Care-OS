@@ -222,6 +222,12 @@ class SlackApp {
             await handleTaskInteraction(body.user.id, client, body.trigger_id);
         });
 
+        // Create task (simple)
+        this.app.action('create_task', async ({ ack, body, client }) => {
+            await ack();
+            await handleSimpleTaskCreation(client, body.trigger_id);
+        });
+
         // Give recognition
         this.app.action('give_recognition', async ({ ack, body, client }) => {
             await ack();
@@ -269,6 +275,18 @@ class SlackApp {
             await ack();
             const { handleShareWinSubmission } = await import('./handlers/taskApprovalHandler.js');
             await handleShareWinSubmission(view, client, body.user.id);
+        });
+
+        // Simple task creation modal submission
+        this.app.view('simple_task_modal', async ({ ack, body, view, client }) => {
+            await ack();
+            await handleSimpleTaskSubmission(view, client, body.user.id);
+        });
+
+        // Task completion with notification modal submission
+        this.app.view('notify_completion_modal', async ({ ack, body, view, client }) => {
+            await ack();
+            await handleTaskCompletionWithNotification(view, client, body.user.id);
         });
 
         // Task approval actions

@@ -271,8 +271,23 @@ export const getTaskListBlocks = (tasks) => {
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: '✨ No tasks assigned. You\'re all caught up!',
+                text: '✨ No tasks yet. Create one to get started!',
             },
+        });
+        blocks.push({
+            type: 'actions',
+            elements: [
+                {
+                    type: 'button',
+                    text: {
+                        type: 'plain_text',
+                        text: '➕ Create Task',
+                        emoji: true,
+                    },
+                    style: 'primary',
+                    action_id: 'create_task',
+                },
+            ],
         });
     } else {
         tasks.forEach((task) => {

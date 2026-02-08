@@ -93,25 +93,25 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
  * Handle task completion
  */
 /**
- * Handle task completion button click - now triggers "Share win?" modal
+ * Handle task completion button click - asks who to notify
  */
 export const handleTaskCompletion = async (action, client, userId) => {
     try {
         const taskId = action.value;
 
-        // Open "Share this win?" modal
+        // Open "Who should I notify?" modal
         await client.views.open({
             trigger_id: action.trigger_id,
             view: {
                 type: 'modal',
-                callback_id: 'share_win_modal',
+                callback_id: 'notify_completion_modal',
                 title: {
                     type: 'plain_text',
-                    text: '🎉 Task Complete!',
+                    text: '✅ Task Complete!',
                 },
                 submit: {
                     type: 'plain_text',
-                    text: 'Confirm',
+                    text: 'Complete & Notify',
                 },
                 private_metadata: JSON.stringify({ taskId }),
                 blocks: [
@@ -119,40 +119,31 @@ export const handleTaskCompletion = async (action, client, userId) => {
                         type: 'section',
                         text: {
                             type: 'mrkdwn',
-                            text: '🎉 *Congratulations on completing your task!*\n\nWould you like to share this achievement with the team?',
+                            text: '🎉 Great work! Who should I notify about this completed task?',
                         },
                     },
                     {
                         type: 'input',
-                        block_id: 'share_choice',
+                        block_id: 'notify_user',
                         element: {
-                            type: 'radio_buttons',
-                            action_id: 'share_select',
-                            options: [
-                                {
-                                    text: { type: 'plain_text', text: '✨ Yes, share publicly with the team!' },
-                                    value: 'public',
-                                },
-                                {
-                                    text: { type: 'plain_text', text: '🔒 No, keep it private (notify manager only)' },
-                                    value: 'private',
-                                },
-                            ],
-                            initial_option: {
-                                text: { type: 'plain_text', text: '✨ Yes, share publicly with the team!' },
-                                value: 'public',
+                            type: 'users_select',
+                            action_id: 'user_select',
+                            placeholder: {
+                                type: 'plain_text',
+                                text: 'Select a person to notify',
                             },
                         },
                         label: {
                             type: 'plain_text',
-                            text: 'Share this win?',
+                            text: 'Notify',
                         },
+                        optional: true,
                     },
                 ],
             },
         });
     } catch (error) {
-        console.error('Error opening share win modal:', error);
+        console.error('Error opening notification modal:', error);
 
         // Fallback: complete task silently
         try {
