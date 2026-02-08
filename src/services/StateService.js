@@ -5,17 +5,31 @@ class StateService {
     constructor() {
         this.useRedis = !!config.redis.url || (config.redis.host && config.redis.host !== 'localhost');
         this.memoryStore = new Map();
-        
+
         if (this.useRedis) {
             console.log('Initializing Redis connection...');
             this.redis = new Redis({
                 host: config.redis.host,
                 port: config.redis.port,
-                retryStrategy: (times) => Math.min(times * 50, 2000),
+                lazyConnect: true, // Don't connect immediately
+                maxRetriesPerRequest: 0, // No retries
+                retryStrategy: () => null, // Disable retry strategy
+                enableOfflineQueue: false // Don't queue commands when offline
             });
 
-            this.redis.on('error', (err) => console.error('Redis connection error:', err));
+            this.redis.on('error', (err) => {
+                console.error('Redis connection error:', err);
+                console.warn('Falling back to in-memory storage');
+                this.useRedis = false; // Switch to in-memory
+            });
             this.redis.on('connect', () => console.log('Redis connected'));
+
+            // Attempt connection, but don't wait for it
+            this.redis.connect().catch((err) => {
+                console.error('Failed to connect to Redis:', err);
+                console.warn('Falling back to in-memory storage');
+                this.useRedis = false;
+            });
         } else {
             console.log('Redis not configured. Using in-memory storage for state.');
         }
@@ -47,7 +61,7 @@ class StateService {
 
     async getState(userId, platform, conversationId) {
         const key = this._getKey(userId, platform, conversationId);
-        
+
         if (this.useRedis) {
             const data = await this.redis.get(key);
             return data ? JSON.parse(data) : null;
