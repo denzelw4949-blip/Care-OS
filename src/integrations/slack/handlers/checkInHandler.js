@@ -64,12 +64,16 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                 blocks: getCheckInSuccessBlocks(),
             });
 
-            // DEBUG: Log visibility value
-            console.log('🔍 DEBUG - Check-in visibility value:', checkInData.visibility);
+            // DEBUG: Log all extracted values
+            console.log('🔍 DEBUG - All check-in values:', JSON.stringify(checkInData, null, 2));
+            console.log('🔍 DEBUG - Visibility value type:', typeof checkInData.visibility, '| Value:', checkInData.visibility);
+
+            // TEMPORARY: Force public posting to test channel access
+            const forcePublic = true; // SET TO TRUE TO TEST
 
             // If visibility is PUBLIC, share to general/team channel
-            if (checkInData.visibility === 'public') {
-                console.log('✅ Visibility is public, attempting to share to #general...');
+            if (checkInData.visibility === 'public' || forcePublic) {
+                console.log(`✅ ${forcePublic ? 'FORCED' : 'Normal'} public posting - attempting to share to #general...`);
                 try {
                     // Get mood emoji
                     const moodEmoji = {
@@ -85,8 +89,16 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                     // Get energy indicator
                     const energyBar = '█'.repeat(Math.floor(checkInData.energyLevel / 2)) + '░'.repeat(5 - Math.floor(checkInData.energyLevel / 2));
 
-                    await client.chat.postMessage({
-                        channel: '#general', // Post to #general channel
+                    console.log('📝 Attempting to post to channel with data:', {
+                        mood: checkInData.mood,
+                        moodEmoji,
+                        energyLevel: checkInData.energyLevel,
+                        energyBar
+                    });
+
+                    const result = await client.chat.postMessage({
+                        channel: 'general', // Try without # first
+                        text: `${moodEmoji} @${slackUserId} just checked in!`, // Fallback text
                         blocks: [
                             {
                                 type: 'section',
@@ -134,11 +146,26 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                             }
                         ]
                     });
-                    console.log('✅ Public check-in shared to #general channel successfully!');
+
+                    console.log('✅✅✅ SUCCESS! Public check-in posted to channel!');
+                    console.log('📬 Message posted with ts:', result.ts, 'to channel:', result.channel);
                 } catch (channelError) {
-                    console.error('❌ FAILED to post public check-in to #general:', channelError.message);
-                    console.error('Full error:', channelError);
-                    // Don't fail the whole check-in if channel post fails
+                    console.error('❌❌❌ FAILED to post public check-in!');
+                    console.error('Error name:', channelError.name);
+                    console.error('Error message:', channelError.message);
+                    console.error('Error code:', channelError.code);
+                    console.error('Error data:', JSON.stringify(channelError.data, null, 2));
+                    console.error('Full error object:', channelError);
+
+                    // Try to notify user of the error
+                    try {
+                        await client.chat.postMessage({
+                            channel: slackUserId,
+                            text: `⚠️ Your check-in was saved, but we couldn't post it publicly. Error: ${channelError.message}`
+                        });
+                    } catch (e) {
+                        console.error('Could not even notify user of error:', e);
+                    }
                 }
             } else {
                 console.log('🔒 Visibility is NOT public, skipping channel post. Value:', checkInData.visibility);
