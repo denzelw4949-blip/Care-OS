@@ -28,14 +28,21 @@ if (hasDbConfig) {
     });
 
     if (process.env.DATABASE_URL) {
+        if (process.env.DATABASE_URL.startsWith('sqlite:')) {
+            console.error('❌ FATAL ERROR: SQLite configuration detected.');
+            console.error('   The application requires PostgreSQL.');
+            console.error('   Please update DATABASE_URL in your .env file to a valid PostgreSQL connection string.');
+            throw new Error('Invalid Database Configuration: SQLite URL detected. Please use PostgreSQL.');
+        }
         poolConfig.connectionString = process.env.DATABASE_URL;
         poolConfig.ssl = { rejectUnauthorized: false };
     } else {
-        // If config.database.host is 'localhost' (default) AND PGHOST exists, 
+        // If config.database.host is 'localhost' (default) AND PGHOST exists,
         // DO NOT set host/port/user/etc - let pg.Pool use the env vars directly.
         // We only use config.* if they are NOT localhost default.
         if (config.database.host !== 'localhost' || !process.env.PGHOST) {
-            poolConfig.host = config.database.host;
+            // Force IPv4 for local connections to avoid ::1 issues
+            poolConfig.host = config.database.host === 'localhost' ? '127.0.0.1' : config.database.host;
             poolConfig.port = config.database.port;
             poolConfig.database = config.database.name;
             poolConfig.user = config.database.user;
