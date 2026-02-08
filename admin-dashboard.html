@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARE OS - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-banner {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+        }
+
+        .status-banner .icon {
+            font-size: 2em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-icon {
+            font-size: 2em;
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            font-size: 1.5em;
+        }
+
+        .checkin-demo {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .checkin-options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .option-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 CARE OS</h1>
+            <p class="subtitle">Human-Centered Wellbeing & Task Management System</p>
+        </header>
+
+        <div class="status-banner">
+            <span class="icon">⚠️</span>
+            <div>
+                <strong>Setup Required</strong> - This is a demo interface. To fully activate CARE OS, you need to install Node.js dependencies and configure database connections. See instructions below.
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <h3 class="card-title">System Overview</h3>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Total Users</span>
+                    <span class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Check-Ins Today</span>
+                    <span class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Active Tasks</span>
+                    <span class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Recognitions</span>
+                    <span class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🛡️</span>
+                    <h3 class="card-title">Ethical Guardrails</h3>
+                </div>
+                <div class="feature-list">
+                    <div class="feature">
+                        <span class="feature-icon">✅</span>
+                        <span>Anti-Disciplinary Logic Active</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">✅</span>
+                        <span>Advisory-Only AI Outputs</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">✅</span>
+                        <span>Privacy Controls Enabled</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">✅</span>
+                        <span>No Employee Ranking</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🔌</span>
+                    <h3 class="card-title">Integrations</h3>
+                </div>
+                <div class="feature-list">
+                    <div class="feature">
+                        <span class="feature-icon">💬</span>
+                        <span><strong>Slack</strong> - Ready to configure</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">👥</span>
+                        <span><strong>Microsoft Teams</strong> - Coming soon</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🤖</span>
+                        <span><strong>OpenAI/Gemini</strong> - For AI insights</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎯 Interactive Check-In Demo</h2>
+            <p style="color: #666; margin-bottom: 20px;">Experience how employees would interact with daily check-ins:</p>
+            
+            <div class="checkin-demo">
+                <div class="checkin-options">
+                    <div class="option-group">
+                        <label>⚡ Energy Level: <span class="value-display" id="energy-value">5</span></label>
+                        <input type="range" min="1" max="10" value="5" id="energy-slider">
+                    </div>
+                    
+                    <div class="option-group">
+                        <label>😌 Stress Level: <span class="value-display" id="stress-value">5</span></label>
+                        <input type="range" min="1" max="10" value="5" id="stress-slider">
+                    </div>
+                    
+                    <div class="option-group">
+                        <label>📋 Workload Level: <span class="value-display" id="workload-value">5</span></label>
+                        <input type="range" min="1" max="10" value="5" id="workload-slider">
+                    </div>
+                </div>
+                
+                <button class="button" onclick="showCheckInResult()">Submit Check-In (Demo)</button>
+                
+                <div id="result" style="margin-top: 20px; display: none;">
+                    <div style="background: white; padding: 20px; border-radius: 10px;">
+                        <h3 style="color: #333; margin-bottom: 15px;">✅ Check-In Recorded!</h3>
+                        <p style="color: #666;">Your check-in has been recorded with privacy settings respected. Managers can see aggregated patterns to offer support, but <strong>no disciplinary recommendations are ever made</strong>.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">Advisory Only</span>
+                            <span class="tag">Privacy Protected</span>
+                            <span class="tag">Human-Centered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>📚 Core Features</h2>
+            <div class="feature-list">
+                <div class="feature">
+                    <span class="feature-icon">📝</span>
+                    <div>
+                        <strong>Daily Check-Ins</strong>
+                        <p style="color: #666; font-size: 0.9em; margin-top: 5px;">Track energy, stress, and workload with employee-controlled privacy settings</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✅</span>
+                    <div>
+                        <strong>Task Management</strong>
+                        <p style="color: #666; font-size: 0.9em; margin-top: 5px;">Role-based task assignment with completion tracking</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🎉</span>
+                    <div>
+                        <strong>Peer Recognition</strong>
+                        <p style="color: #666; font-size: 0.9em; margin-top: 5px;">Culture-building recognition system with categories</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">📊</span>
+                    <div>
+                        <strong>Deviation Detection</strong>
+                        <p style="color: #666; font-size: 0.9em; margin-top: 5px;">Advisory-only alerts for manager awareness (never disciplinary)</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🤖</span>
+                    <div>
+                        <strong>AI Insights</strong>
+                        <p style="color: #666; font-size: 0.9em; margin-top: 5px;">Supportive suggestions with hard-coded ethical constraints</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 Setup Instructions</h2>
+            <p style="color: #666; margin-bottom: 20px;">To activate CARE OS fully, follow these steps:</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                <h3 style="color: #333; margin-bottom: 10px;">1. Install Node.js</h3>
+                <p style="color: #666;">Visit <a href="https://nodejs.org" target="_blank" style="color: #667eea; font-weight: 600;">nodejs.org</a> and download the LTS version</p>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                <h3 style="color: #333; margin-bottom: 10px;">2. Install Dependencies</h3>
+                <div class="code-block">cd /Users/denzelwilliams/.gemini/antigravity/playground/sonic-plasma
+npm install</div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                <h3 style="color: #333; margin-bottom: 10px;">3. Set Up Database</h3>
+                <div class="code-block"># Install PostgreSQL
+brew install postgresql redis
+
+# Start services
+brew services start postgresql
+brew services start redis
+
+# Create database
+createdb care_os
+psql -d care_os -f src/database/schema.sql</div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                <h3 style="color: #333; margin-bottom: 10px;">4. Start the Server</h3>
+                <div class="code-block">npm run dev
+
+# Server will start at http://localhost:3000</div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                <h3 style="color: #333; margin-bottom: 10px;">5. Configure Slack (Optional)</h3>
+                <p style="color: #666;">Follow the guide in <code style="background: #e9ecef; padding: 3px 8px; border-radius: 5px;">docs/PLATFORM_SETUP.md</code> to set up your Slack app</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 40px 0; color: rgba(255,255,255,0.8);">
+            <p style="font-size: 1.2em; margin-bottom: 10px;">Built with 💙 for human-centered workplaces</p>
+            <p>CARE OS - Where technology supports human flourishing</p>
+        </div>
+    </div>
+
+    <script>
+        // Interactive sliders
+        document.getElementById('energy-slider').addEventListener('input', function(e) {
+            document.getElementById('energy-value').textContent = e.target.value;
+        });
+
+        document.getElementById('stress-slider').addEventListener('input', function(e) {
+            document.getElementById('stress-value').textContent = e.target.value;
+        });
+
+        document.getElementById('workload-slider').addEventListener('input', function(e) {
+            document.getElementById('workload-value').textContent = e.target.value;
+        });
+
+        function showCheckInResult() {
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+            result.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
