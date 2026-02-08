@@ -225,8 +225,17 @@ class SlackApp {
 
         // Create task (simple)
         this.app.action('create_task', async ({ ack, body, client }) => {
+            console.log('🔘 CREATE_TASK BUTTON CLICKED!');
+            console.log('User:', body.user.id);
+            console.log('Trigger ID:', body.trigger_id);
             await ack();
-            await handleSimpleTaskCreation(client, body.trigger_id);
+            console.log('✅ Action acknowledged');
+            try {
+                await handleSimpleTaskCreation(client, body.trigger_id);
+                console.log('✅ handleSimpleTaskCreation completed');
+            } catch (error) {
+                console.error('❌ Error in handleSimpleTaskCreation:', error);
+            }
         });
 
         // Give recognition

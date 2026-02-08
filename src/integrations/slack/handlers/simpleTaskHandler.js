@@ -5,8 +5,11 @@ import TaskService from '../../../services/TaskService.js';
  * Handle simple task creation (self-assigned)
  */
 export const handleSimpleTaskCreation = async (client, triggerId) => {
+    console.log('📝 handleSimpleTaskCreation called');
+    console.log('Trigger ID:', triggerId);
     try {
-        await client.views.open({
+        console.log('Attempting to open modal...');
+        const result = await client.views.open({
             trigger_id: triggerId,
             view: {
                 type: 'modal',
@@ -39,8 +42,11 @@ export const handleSimpleTaskCreation = async (client, triggerId) => {
                 ],
             },
         });
+        console.log('✅ Modal opened successfully!', result);
     } catch (error) {
-        console.error('Error opening simple task modal:', error);
+        console.error('❌ Error opening simple task modal:', error);
+        console.error('Error details:', error.message);
+        console.error('Error data:', error.data);
     }
 };
 
