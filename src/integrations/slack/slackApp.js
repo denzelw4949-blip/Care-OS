@@ -8,8 +8,8 @@ import AuthService from '../../services/AuthService.js';
 /**
  * Slack App initialization with Bolt SDK
  */
-import { App, ExpressReceiver } from '@slack/bolt';
-
+import pkg from '@slack/bolt';
+const { App, ExpressReceiver } = pkg;
 /**
  * Slack App initialization with Bolt SDK
  */
