@@ -5,24 +5,43 @@ const { Pool } = pg;
 
 // Check if DB config is present
 // Railway provides DATABASE_URL, local dev uses individual fields
-const hasDbConfig = Boolean(process.env.DATABASE_URL || (config.database.host && config.database.user && config.database.host !== 'localhost'));
+// Check if DB config is present
+// Railway provides DATABASE_URL, local dev uses individual fields
+const hasDbConfig = Boolean(
+    process.env.DATABASE_URL ||
+    process.env.PGHOST ||
+    (config.database.host && config.database.user && config.database.host !== 'localhost')
+);
 
 let pool;
 
 if (hasDbConfig) {
     // Create database connection pool
-    const poolConfig = process.env.DATABASE_URL
-        ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
-        : {
-            host: config.database.host,
-            port: config.database.port,
-            database: config.database.name,
-            user: config.database.user,
-            password: config.database.password,
-            max: 20,
-            idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 2000,
-        };
+    // Create database connection pool
+    // Prioritize DATABASE_URL, then explicit config, then standard PG env vars
+    const poolConfig = {};
+
+    if (process.env.DATABASE_URL) {
+        poolConfig.connectionString = process.env.DATABASE_URL;
+        poolConfig.ssl = { rejectUnauthorized: false };
+    } else {
+        poolConfig.host = config.database.host;
+        poolConfig.port = config.database.port;
+        poolConfig.database = config.database.name;
+        poolConfig.user = config.database.user;
+        poolConfig.password = config.database.password;
+        // Standard PG env vars will be used by pg.Pool if these are undefined
+    }
+
+    // Explicitly add SSL for Railway if not using DATABASE_URL but host is not local
+    if (!poolConfig.connectionString && config.database.host && config.database.host !== 'localhost' && config.database.host !== '127.0.0.1') {
+        poolConfig.ssl = { rejectUnauthorized: false };
+    }
+
+    // Common pool settings
+    poolConfig.max = 20;
+    poolConfig.idleTimeoutMillis = 30000;
+    poolConfig.connectionTimeoutMillis = 2000;
 
     pool = new Pool(poolConfig);
 
