@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import db from '../database/db.js';
 import { z } from 'zod';
 
@@ -44,14 +45,16 @@ export class User {
      */
     static async create(userData) {
         const validated = UserSchema.parse(userData);
+        const id = uuidv4();
 
         const result = await db.query(
             `INSERT INTO users (
-        platform_type, platform_user_id, role, email, 
+        id, platform_type, platform_user_id, role, email, 
         display_name, manager_id, active
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *`,
             [
+                id,
                 validated.platformType,
                 validated.platformUserId,
                 validated.role,

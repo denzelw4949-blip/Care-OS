@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import db from '../database/db.js';
 import { z } from 'zod';
 
@@ -19,14 +20,16 @@ export class Task {
      */
     static async create(taskData) {
         const validated = TaskSchema.parse(taskData);
+        const id = uuidv4();
 
         const result = await db.query(
             `INSERT INTO tasks (
-        assigned_to, assigned_by, title, description,
+        id, assigned_to, assigned_by, title, description,
         status, priority, due_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *`,
             [
+                id,
                 validated.assignedTo,
                 validated.assignedBy || null,
                 validated.title,
