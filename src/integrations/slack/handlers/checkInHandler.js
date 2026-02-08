@@ -1,5 +1,4 @@
-import AuthService from '../../../services/AuthService.js';
-import CheckInService from '../../../services/CheckInService.js';
+// Demo mode check-in handler - no database required
 import { getCompleteCheckInBlocks, getCheckInSuccessBlocks } from '../blocks/checkInBlock.js';
 
 /**
@@ -7,9 +6,6 @@ import { getCompleteCheckInBlocks, getCheckInSuccessBlocks } from '../blocks/che
  */
 export const handleCheckInInteraction = async (slackUserId, client, triggerId = null, viewData = null) => {
     try {
-        // Authenticate user
-        const { user, token } = await AuthService.authenticateUser('slack', slackUserId);
-
         if (viewData) {
             // Modal was submitted - process the check-in
             const values = viewData.state.values;
@@ -23,7 +19,12 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                 visibility: values.privacy?.privacy_select?.selected_option?.value || 'manager_only',
             };
 
-            await CheckInService.submitCheckIn(user.id, checkInData);
+            // In demo mode, just log the check-in
+            console.log('Check-in submitted:', {
+                user: slackUserId,
+                data: checkInData,
+                timestamp: new Date().toISOString()
+            });
 
             // Send success message to user
             await client.chat.postMessage({
