@@ -3,26 +3,25 @@
 
 import express from 'express';
 import cors from 'cors';
-import slackApp from './integrations/slack/slackApp.js';
+// import slackApp from './integrations/slack/slackApp.js'; // Converted to dynamic import below to catch init errors
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-
-// --- CRASH PREVENTION ---
-// Prevent the server from crashing on unhandled Slack SDK or other async errors
+// --- CRASH PREVENTION (Moved to Top) ---
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    // Do not exit the process
 });
 
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
-    // Do not exit the process
 });
 // ------------------------
+
+// Middleware
+app.use(cors());
+
+// Handlers moved to top
 
 // Mount Slack webhooks BEFORE body parsers (Slack needs raw body)
 // This handles /webhooks/slack/events, /webhooks/slack/commands etc.
@@ -30,7 +29,21 @@ process.on('uncaughtException', (error) => {
 // But bolt's ExpressReceiver creates a router. We can mount it.
 // We'll stick to the standard /slack/events pattern or what the user configured.
 // User configured /webhooks/slack/events etc.
-// Let's mount the receiver at /webhooks/slack
+// Load Slack app dynamically to ensure error handlers are active during initialization
+let slackApp;
+try {
+    const module = await import('./integrations/slack/slackApp.js');
+    slackApp = module.default;
+} catch (err) {
+    console.error('Failed to load Slack App:', err);
+    // Create a dummy receiver to prevent server crash if Slack config is bad
+    slackApp = {
+        receiver: {
+            router: (req, res, next) => next()
+        }
+    };
+}
+// ------------------------
 app.use('/webhooks/slack', slackApp.receiver.router);
 
 app.use(express.json());
