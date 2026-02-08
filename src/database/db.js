@@ -4,30 +4,37 @@ import config from '../config/index.js';
 const { Pool } = pg;
 
 // Check if DB config is present
-const hasDbConfig = config.database.host && config.database.user && config.database.host !== 'localhost';
+// Railway provides DATABASE_URL, local dev uses individual fields
+const hasDbConfig = Boolean(process.env.DATABASE_URL || (config.database.host && config.database.user && config.database.host !== 'localhost'));
 
 let pool;
 
 if (hasDbConfig) {
     // Create database connection pool
-    pool = new Pool({
-        host: config.database.host,
-        port: config.database.port,
-        database: config.database.name,
-        user: config.database.user,
-        password: config.database.password,
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-    });
+    const poolConfig = process.env.DATABASE_URL
+        ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
+        : {
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
+            user: config.database.user,
+            password: config.database.password,
+            max: 20,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 2000,
+        };
+
+    pool = new Pool(poolConfig);
 
     // Error handling
     pool.on('error', (err) => {
         console.error('Unexpected database pool error:', err);
         // Don't exit process in demo mode
     });
+
+    console.log('✅ Database pool initialized');
 } else {
-    console.warn('⚠️ No Database Configuration found. Running in MOCK DB mode.');
+    console.warn('⚠️  No Database Configuration found. Running in MOCK DB mode.');
     // Mock pool for demo mode
     pool = {
         connect: async () => ({
