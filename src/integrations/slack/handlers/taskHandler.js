@@ -21,46 +21,41 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
                 });
                 console.log('✅ Tasks fetched from database');
             } catch (dbError) {
-                console.warn('⚠️  Database query failed, showing demo tasks:', dbError.message);
-                // Fall back to demo tasks
-                tasks = [
-                    {
-                        id: '1',
-                        title: 'Complete daily check-in',
-                        description: 'Share how you\'re feeling today',
-                        status: 'pending',
-                        priority: 'medium'
-                    },
-                    {
-                        id: '2',
-                        title: 'Review team recognitions',
-                        description: 'Acknowledge great work from teammates',
-                        status: 'pending',
-                        priority: 'low'
-                    }
-                ];
+                console.warn('⚠️  Database query failed:', dbError.message);
+                tasks = []; // Empty - no demo tasks
             }
         } else {
-            // Demo mode - show sample tasks
-            tasks = [
-                {
-                    id: '1',
-                    title: 'Complete daily check-in',
-                    description: 'Share how you\'re feeling today',
-                    status: 'pending',
-                    priority: 'medium'
-                },
-                {
-                    id: '2',
-                    title: 'Review team recognitions',
-                    description: 'Acknowledge great work from teammates',
-                    status: 'pending',
-                    priority: 'low'
-                }
-            ];
+            // Demo mode - no tasks available yet
+            tasks = [];
         }
 
-        const blocks = getTaskListBlocks(tasks);
+        const blocks = tasks.length > 0
+            ? getTaskListBlocks(tasks)
+            : [
+                {
+                    type: 'section',
+                    text: {
+                        type: 'mrkdwn',
+                        text: '📋 *Your Tasks*'
+                    }
+                },
+                {
+                    type: 'section',
+                    text: {
+                        type: 'mrkdwn',
+                        text: 'You have no pending tasks right now! 🎉\n\n_Tasks can be assigned by managers or created through your dashboard._'
+                    }
+                },
+                {
+                    type: 'context',
+                    elements: [
+                        {
+                            type: 'mrkdwn',
+                            text: '💡 Tasks will appear here when you have work assigned'
+                        }
+                    ]
+                }
+            ];
 
         if (triggerId) {
             // Show in modal

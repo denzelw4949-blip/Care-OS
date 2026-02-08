@@ -63,6 +63,77 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                 channel: slackUserId,
                 blocks: getCheckInSuccessBlocks(),
             });
+
+            // If visibility is PUBLIC, share to general/team channel
+            if (checkInData.visibility === 'public') {
+                try {
+                    // Get mood emoji
+                    const moodEmoji = {
+                        'great': '😄',
+                        'good': '😊',
+                        'okay': '😐',
+                        'stressed': '😰',
+                        'overwhelmed': '😫'
+                    }[checkInData.mood] || '😊';
+
+                    // Get energy indicator
+                    const energyBar = '█'.repeat(Math.floor(checkInData.energyLevel / 2)) + '░'.repeat(5 - Math.floor(checkInData.energyLevel / 2));
+
+                    await client.chat.postMessage({
+                        channel: 'general', // Post to #general channel
+                        blocks: [
+                            {
+                                type: 'section',
+                                text: {
+                                    type: 'mrkdwn',
+                                    text: `${moodEmoji} *<@${slackUserId}>* just checked in!`
+                                }
+                            },
+                            {
+                                type: 'section',
+                                fields: [
+                                    {
+                                        type: 'mrkdwn',
+                                        text: `*Energy:* ${energyBar} ${checkInData.energyLevel}/10`
+                                    },
+                                    {
+                                        type: 'mrkdwn',
+                                        text: `*Mood:* ${moodEmoji} ${checkInData.mood}`
+                                    },
+                                    {
+                                        type: 'mrkdwn',
+                                        text: `*Stress:* ${checkInData.stressLevel}/10`
+                                    },
+                                    {
+                                        type: 'mrkdwn',
+                                        text: `*Workload:* ${checkInData.workloadLevel}/10`
+                                    }
+                                ]
+                            },
+                            ...(checkInData.notes ? [{
+                                type: 'section',
+                                text: {
+                                    type: 'mrkdwn',
+                                    text: `💭 _"${checkInData.notes}"_`
+                                }
+                            }] : []),
+                            {
+                                type: 'context',
+                                elements: [
+                                    {
+                                        type: 'mrkdwn',
+                                        text: '✨ Shared publicly with the team'
+                                    }
+                                ]
+                            }
+                        ]
+                    });
+                    console.log('✅ Public check-in shared to #general channel');
+                } catch (channelError) {
+                    console.error('Failed to post public check-in:', channelError.message);
+                    // Don't fail the whole check-in if channel post fails
+                }
+            }
         } else if (triggerId) {
             // Open check-in modal
             await client.views.open({
