@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARE OS in Slack - Interactive Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Slack-Lato', 'Segoe UI', sans-serif;
+            background: #f8f8f8;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .slack-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #3f0e40;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .workspace-header {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 900;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .channels {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .channel-section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            padding: 0 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .channel {
+            padding: 5px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 15px;
+        }
+
+        .channel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .channel.active {
+            background: #1164a3;
+        }
+
+        .channel::before {
+            content: "# ";
+            opacity: 0.7;
+            margin-right: 5px;
+        }
+
+        .dm {
+            padding: 5px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .dm:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dm.active {
+            background: #1164a3;
+        }
+
+        .dm-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            height: 60px;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            margin-bottom: 4px;
+        }
+
+        .message-author {
+            font-weight: 900;
+            margin-right: 8px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #616061;
+        }
+
+        .message-text {
+            color: #1d1c1d;
+            line-height: 1.5;
+        }
+
+        /* Slack Blocks */
+        .slack-block {
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 8px;
+            background: #f8f8f8;
+            max-width: 600px;
+        }
+
+        .block-header {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #1d1c1d;
+        }
+
+        .block-section {
+            margin-bottom: 12px;
+        }
+
+        .block-field {
+            margin-bottom: 8px;
+        }
+
+        .block-field-label {
+            font-weight: 600;
+            color: #616061;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .block-field-value {
+            color: #1d1c1d;
+            font-size: 14px;
+        }
+
+        .slider-container {
+            margin: 12px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .slider-value {
+            font-weight: 700;
+            color: #1164a3;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .button-primary {
+            background: #007a5a;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #006144;
+        }
+
+        .button-secondary {
+            background: white;
+            border: 1px solid #ddd;
+            color: #1d1c1d;
+        }
+
+        .button-secondary:hover {
+            background: #f8f8f8;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* Message Input */
+        .message-input-container {
+            padding: 20px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .message-input {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            height: 50px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #1164a3;
+        }
+
+        .slash-command-hint {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #616061;
+        }
+
+        .slash-command {
+            background: #f8f8f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            cursor: pointer;
+            display: inline-block;
+            margin: 0 4px;
+        }
+
+        .slash-command:hover {
+            background: #e8e8e8;
+        }
+
+        /* Success/Error Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4f4dd;
+            border-left: 4px solid #007a5a;
+            color: #1d1c1d;
+        }
+
+        .alert-info {
+            background: #e0f2fe;
+            border-left: 4px solid #1164a3;
+            color: #1d1c1d;
+        }
+
+        /* Task List */
+        .task-item {
+            padding: 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: white;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .task-priority {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .priority-low {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .task-description {
+            font-size: 13px;
+            color: #616061;
+            margin-top: 4px;
+        }
+
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-new {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 8px 12px;
+            background: #f8f8f8;
+            border-radius: 16px;
+            margin-top: 8px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #616061;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-8px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slack-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="workspace-header">Your Workspace</div>
+            <div class="channels">
+                <div class="channel-section">
+                    <div class="section-header">Channels</div>
+                    <div class="channel"># general</div>
+                    <div class="channel"># random</div>
+                    <div class="channel"># wellbeing</div>
+                </div>
+                <div class="channel-section">
+                    <div class="section-header">Direct Messages</div>
+                    <div class="dm active">
+                        <div class="dm-avatar">🏥</div>
+                        <span>CARE OS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-header">
+                🏥 CARE OS
+            </div>
+
+            <div class="messages" id="messages">
+                <!-- Welcome Message -->
+                <div class="message">
+                    <div class="message-avatar">🏥</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">CARE OS</span>
+                            <span class="message-time">9:00 AM</span>
+                        </div>
+                        <div class="message-text">
+                            👋 Welcome! I'm here to help you manage your wellbeing and tasks.
+                            <div class="alert alert-info" style="margin-top: 12px;">
+                                <strong>Try these slash commands:</strong><br>
+                                • <code>/checkin</code> - Start your daily wellbeing check-in<br>
+                                • <code>/tasks</code> - View and manage your tasks<br>
+                                • <code>/recognize @teammate</code> - Recognize a colleague
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <input type="text" class="message-input" id="messageInput" placeholder="Message CARE OS"
+                    onkeypress="handleKeyPress(event)">
+                <div class="slash-command-hint">
+                    Quick commands:
+                    <span class="slash-command" onclick="sendCommand('/checkin')">/checkin</span>
+                    <span class="slash-command" onclick="sendCommand('/tasks')">/tasks</span>
+                    <span class="slash-command" onclick="sendCommand('/recognize')">/recognize</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        let currentView = null;
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                const message = messageInput.value.trim();
+                if (message) {
+                    sendMessage(message);
+                    messageInput.value = '';
+                }
+            }
+        }
+
+        function sendMessage(text) {
+            addUserMessage(text);
+
+            if (text.startsWith('/')) {
+                sendCommand(text);
+            } else {
+                setTimeout(() => addBotMessage("I'm here to help! Try using a slash command like /checkin, /tasks, or /recognize"), 500);
+            }
+        }
+
+        function sendCommand(command) {
+            const cmd = command.toLowerCase().split(' ')[0];
+
+            setTimeout(() => {
+                if (cmd === '/checkin') {
+                    showCheckinForm();
+                } else if (cmd === '/tasks') {
+                    showTasks();
+                } else if (cmd === '/recognize') {
+                    showRecognitionForm();
+                } else {
+                    addBotMessage(`Command not recognized. Try /checkin, /tasks, or /recognize`);
+                }
+            }, 800);
+        }
+
+        function addUserMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-new';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">👤</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">You</span>
+                        <span class="message-time">${getCurrentTime()}</span>
+                    </div>
+                    <div class="message-text">${text}</div>
+                </div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function addBotMessage(text, includeBlock = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-new';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🏥</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-author">CARE OS</span>
+                        <span class="message-time">${getCurrentTime()}</span>
+                    </div>
+                    <div class="message-text">${text}</div>
+                </div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🏥</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        function showCheckinForm() {
+            showTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator();
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message message-new';
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">🏥</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">CARE OS</span>
+                            <span class="message-time">${getCurrentTime()}</span>
+                        </div>
+                        <div class="message-text">Let's do your daily check-in! 💙</div>
+                        <div class="slack-block">
+                            <div class="block-header">📝 Daily Wellbeing Check-In</div>
+                            
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>⚡ Energy Level</span>
+                                    <span class="slider-value" id="energy-val">5</span>
+                                </div>
+                                <input type="range" min="1" max="10" value="5" id="energy-slider" 
+                                       oninput="document.getElementById('energy-val').textContent = this.value">
+                            </div>
+
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>😌 Stress Level</span>
+                                    <span class="slider-value" id="stress-val">5</span>
+                                </div>
+                                <input type="range" min="1" max="10" value="5" id="stress-slider"
+                                       oninput="document.getElementById('stress-val').textContent = this.value">
+                            </div>
+
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>📋 Workload</span>
+                                    <span class="slider-value" id="workload-val">5</span>
+                                </div>
+                                <input type="range" min="1" max="10" value="5" id="workload-slider"
+                                       oninput="document.getElementById('workload-val').textContent = this.value">
+                            </div>
+
+                            <div class="block-field">
+                                <div class="block-field-label">How are you feeling today?</div>
+                                <select class="dropdown" id="mood-select">
+                                    <option value="great">😄 Great</option>
+                                    <option value="good">🙂 Good</option>
+                                    <option value="okay" selected>😐 Okay</option>
+                                    <option value="not_great">😕 Not great</option>
+                                    <option value="struggling">😞 Struggling</option>
+                                </select>
+                            </div>
+
+                            <div class="button-group">
+                                <button class="button button-primary" onclick="submitCheckin()">
+                                    ✅ Submit Check-In
+                                </button>
+                                <button class="button button-secondary" onclick="cancelAction()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                scrollToBottom();
+            }, 1000);
+        }
+
+        function submitCheckin() {
+            const energy = document.getElementById('energy-slider').value;
+            const stress = document.getElementById('stress-slider').value;
+            const workload = document.getElementById('workload-slider').value;
+            const mood = document.getElementById('mood-select').value;
+
+            showTypingIndicator();
+
+            // Call the real API
+            fetch('http://localhost:3000/api/checkins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    energyLevel: parseInt(energy),
+                    stressLevel: parseInt(stress),
+                    workloadLevel: parseInt(workload),
+                    mood: mood
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message message-new';
+                        messageDiv.innerHTML = `
+                        <div class="message-avatar">🏥</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-author">CARE OS</span>
+                                <span class="message-time">${getCurrentTime()}</span>
+                            </div>
+                            <div class="message-text">
+                                <div class="alert alert-success">
+                                    ✅ <strong>Check-in submitted!</strong><br><br>
+                                    Your wellbeing data has been recorded privately. 
+                                    ${stress >= 7 ? 'I noticed you\'re experiencing higher stress. Remember to take breaks when needed. 💙' : ''}
+                                    ${energy <= 3 ? 'Your energy seems low. Make sure you\'re getting enough rest! 😴' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                        messagesContainer.appendChild(messageDiv);
+                        scrollToBottom();
+                    }, 800);
+                })
+                .catch(error => {
+                    removeTypingIndicator();
+                    addBotMessage('Error submitting check-in. Make sure the server is running at http://localhost:3000');
+                });
+        }
+
+        function showTasks() {
+            showTypingIndicator();
+
+            // Fetch real tasks from API
+            fetch('http://localhost:3000/api/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        const tasks = data.tasks || [];
+
+                        let tasksHtml = '';
+                        if (tasks.length === 0) {
+                            tasksHtml = '<div class="alert alert-info">No active tasks. You\'re all caught up! 🎉</div>';
+                        } else {
+                            tasksHtml = tasks.map(task => `
+                                <div class="task-item">
+                                    <div class="task-header">
+                                        <span class="task-title">${task.title}</span>
+                                        <span class="task-priority priority-${task.priority >= 4 ? 'high' : task.priority >= 3 ? 'medium' : 'low'}">
+                                            ${task.priority >= 4 ? '🔴 High' : task.priority >= 3 ? '🟡 Medium' : '🟢 Low'}
+                                        </span>
+                                    </div>
+                                    ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                                </div>
+                            `).join('');
+                        }
+
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message message-new';
+                        messageDiv.innerHTML = `
+                            <div class="message-avatar">🏥</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-author">CARE OS</span>
+                                    <span class="message-time">${getCurrentTime()}</span>
+                                </div>
+                                <div class="message-text">Here are your tasks:</div>
+                                <div class="slack-block">
+                                    <div class="block-header">✅ Your Tasks</div>
+                                    ${tasksHtml}
+                                </div>
+                            </div>
+                        `;
+                        messagesContainer.appendChild(messageDiv);
+                        scrollToBottom();
+                    }, 800);
+                })
+                .catch(error => {
+                    removeTypingIndicator();
+                    addBotMessage('Error loading tasks. Make sure the server is running.');
+                });
+        }
+
+        function showRecognitionForm() {
+            showTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator();
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message message-new';
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">🏥</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">CARE OS</span>
+                            <span class="message-time">${getCurrentTime()}</span>
+                        </div>
+                        <div class="message-text">Let's recognize someone! 🎉</div>
+                        <div class="slack-block">
+                            <div class="block-header">🎉 Send Recognition</div>
+                            
+                            <div class="block-field">
+                                <div class="block-field-label">Who do you want to recognize?</div>
+                                <input type="text" class="dropdown" id="recognize-name" 
+                                       placeholder="e.g., @sarah" style="padding: 10px;">
+                            </div>
+
+                            <div class="block-field">
+                                <div class="block-field-label">What did they do?</div>
+                                <select class="dropdown" id="recognize-category">
+                                    <option value="teamwork">🤝 Teamwork</option>
+                                    <option value="innovation">💡 Innovation</option>
+                                    <option value="leadership">🌟 Leadership</option>
+                                    <option value="support">❤️ Support</option>
+                                </select>
+                            </div>
+
+                            <div class="block-field">
+                                <div class="block-field-label">Your message</div>
+                                <input type="text" class="dropdown" id="recognize-message" 
+                                       placeholder="Tell them why you appreciate them..." style="padding: 10px;">
+                            </div>
+
+                            <div class="button-group">
+                                <button class="button button-primary" onclick="submitRecognition()">
+                                    🎉 Send Recognition
+                                </button>
+                                <button class="button button-secondary" onclick="cancelAction()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                scrollToBottom();
+            }, 1000);
+        }
+
+        function submitRecognition() {
+            const name = document.getElementById('recognize-name').value;
+            const category = document.getElementById('recognize-category').value;
+            const message = document.getElementById('recognize-message').value;
+
+            if (!name || !message) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            showTypingIndicator();
+
+            fetch('http://localhost:3000/api/recognitions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: name,
+                    category: category,
+                    message: message
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message message-new';
+                        messageDiv.innerHTML = `
+                        <div class="message-avatar">🏥</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-author">CARE OS</span>
+                                <span class="message-time">${getCurrentTime()}</span>
+                            </div>
+                            <div class="message-text">
+                                <div class="alert alert-success">
+                                    🎉 <strong>Recognition sent to ${name}!</strong><br><br>
+                                    They'll receive your message and feel appreciated. Keep spreading positivity! 💙
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                        messagesContainer.appendChild(messageDiv);
+                        scrollToBottom();
+                    }, 800);
+                })
+                .catch(error => {
+                    removeTypingIndicator();
+                    addBotMessage('Error sending recognition. Make sure the server is running.');
+                });
+        }
+
+        function cancelAction() {
+            addBotMessage('Action cancelled. Let me know if you need anything else!');
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Auto-scroll on load
+        window.onload = scrollToBottom;
+    </script>
+</body>
+
+</html>

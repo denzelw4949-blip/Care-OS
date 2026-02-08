@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARE OS - Live Testing Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .status.connected {
+            background: #10b981;
+            color: white;
+        }
+
+        .status.disconnected {
+            background: #ef4444;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .value-display {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .response.success {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+
+        .response.error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .log-entry.checkin {
+            border-left: 4px solid #10b981;
+        }
+
+        .log-entry.task {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .log-entry.recognition {
+            border-left: 4px solid #f59e0b;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 CARE OS - Live Testing</h1>
+            <p style="color: #666; margin: 10px 0;">Test all features in real-time</p>
+            <span class="status" id="status">Checking...</span>
+        </header>
+
+        <div class="grid">
+            <!-- Live Stats -->
+            <div class="card">
+                <h2>📊 Live Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="checkins-count">0</div>
+                        <div class="stat-label">Check-ins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="tasks-count">0</div>
+                        <div class="stat-label">Active Tasks</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="recognitions-count">0</div>
+                        <div class="stat-label">Recognitions</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="users-count">0</div>
+                        <div class="stat-label">Users</div>
+                    </div>
+                </div>
+                <button onclick="refreshStats()" style="margin-top: 15px;">🔄 Refresh Stats</button>
+            </div>
+
+            <!-- Submit Check-in -->
+            <div class="card">
+                <h2>📝 Submit Check-In</h2>
+                <div class="form-group">
+                    <label>⚡ Energy Level: <span class="value-display" id="energy-display">5</span></label>
+                    <input type="range" id="energy" min="1" max="10" value="5" oninput="updateDisplay('energy')">
+                </div>
+                <div class="form-group">
+                    <label>😌 Stress Level: <span class="value-display" id="stress-display">5</span></label>
+                    <input type="range" id="stress" min="1" max="10" value="5" oninput="updateDisplay('stress')">
+                </div>
+                <div class="form-group">
+                    <label>📋 Workload: <span class="value-display" id="workload-display">5</span></label>
+                    <input type="range" id="workload" min="1" max="10" value="5" oninput="updateDisplay('workload')">
+                </div>
+                <div class="form-group">
+                    <label>Mood:</label>
+                    <select id="mood">
+                        <option value="great">😄 Great</option>
+                        <option value="good">🙂 Good</option>
+                        <option value="okay" selected>😐 Okay</option>
+                        <option value="not_great">😕 Not great</option>
+                        <option value="struggling">😞 Struggling</option>
+                    </select>
+                </div>
+                <button onclick="submitCheckin()">✅ Submit Check-In</button>
+                <div class="response" id="checkin-response"></div>
+            </div>
+
+            <!-- Create Task -->
+            <div class="card">
+                <h2>✅ Create Task</h2>
+                <div class="form-group">
+                    <label>Task Title:</label>
+                    <input type="text" id="task-title" placeholder="e.g., Review project proposal">
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="task-description" placeholder="Optional details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Priority:</label>
+                    <select id="task-priority">
+                        <option value="1">🟢 Low</option>
+                        <option value="2">🟢 Low-Medium</option>
+                        <option value="3" selected>🟡 Medium</option>
+                        <option value="4">🟡 High</option>
+                        <option value="5">🔴 Urgent</option>
+                    </select>
+                </div>
+                <button onclick="createTask()">➕ Create Task</button>
+                <div class="response" id="task-response"></div>
+            </div>
+
+            <!-- Send Recognition -->
+            <div class="card">
+                <h2>🎉 Send Recognition</h2>
+                <div class="form-group">
+                    <label>Recipient Name:</label>
+                    <input type="text" id="recognition-to" placeholder="e.g., Sarah">
+                </div>
+                <div class="form-group">
+                    <label>Message:</label>
+                    <textarea id="recognition-message" placeholder="Tell them why you appreciate them..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="recognition-category">
+                        <option value="teamwork">🤝 Teamwork</option>
+                        <option value="problem_solving">🎯 Problem Solving</option>
+                        <option value="innovation">💡 Innovation</option>
+                        <option value="leadership">🌟 Leadership</option>
+                        <option value="support">❤️ Support</option>
+                    </select>
+                </div>
+                <button onclick="sendRecognition()">🎉 Send Recognition</button>
+                <div class="response" id="recognition-response"></div>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+            <h2>📜 Activity Log (Real-Time)</h2>
+            <div class="activity-log" id="activity-log">
+                <div style="text-align: center; color: #666; padding: 20px;">Activity will appear here as you test
+                    features...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let activityLog = [];
+
+        // Check server status on load
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                document.getElementById('status').textContent = '✅ Connected';
+                document.getElementById('status').className = 'status connected';
+                addLog('system', 'Connected to CARE OS server');
+                refreshStats();
+            } catch (error) {
+                document.getElementById('status').textContent = '❌ Disconnected';
+                document.getElementById('status').className = 'status disconnected';
+                addLog('error', 'Could not connect to server');
+            }
+        }
+
+        // Update slider displays
+        function updateDisplay(type) {
+            const value = document.getElementById(type).value;
+            document.getElementById(`${type}-display`).textContent = value;
+        }
+
+        // Refresh stats
+        async function refreshStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('checkins-count').textContent = data.stats.checkinsToday;
+                    document.getElementById('tasks-count').textContent = data.stats.activeTasks;
+                    document.getElementById('recognitions-count').textContent = data.stats.recognitions;
+                    document.getElementById('users-count').textContent = data.stats.totalUsers;
+                }
+            } catch (error) {
+                console.error('Error refreshing stats:', error);
+            }
+        }
+
+        // Submit check-in
+        async function submitCheckin() {
+            const data = {
+                energyLevel: parseInt(document.getElementById('energy').value),
+                stressLevel: parseInt(document.getElementById('stress').value),
+                workloadLevel: parseInt(document.getElementById('workload').value),
+                mood: document.getElementById('mood').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/checkins`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                showResponse('checkin-response', true, '✅ Check-in submitted successfully!');
+                addLog('checkin', `Check-in: Energy ${data.energyLevel}/10, Stress ${data.stressLevel}/10, Mood: ${data.mood}`);
+                refreshStats();
+            } catch (error) {
+                showResponse('checkin-response', false, '❌ Error submitting check-in');
+                addLog('error', 'Failed to submit check-in');
+            }
+        }
+
+        // Create task
+        async function createTask() {
+            const title = document.getElementById('task-title').value;
+            if (!title) {
+                showResponse('task-response', false, '❌ Please enter a task title');
+                return;
+            }
+
+            const data = {
+                title: title,
+                description: document.getElementById('task-description').value,
+                priority: parseInt(document.getElementById('task-priority').value)
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                showResponse('task-response', true, '✅ Task created successfully!');
+                addLog('task', `New task: ${title} (Priority: ${data.priority})`);
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-description').value = '';
+                refreshStats();
+            } catch (error) {
+                showResponse('task-response', false, '❌ Error creating task');
+                addLog('error', 'Failed to create task');
+            }
+        }
+
+        // Send recognition
+        async function sendRecognition() {
+            const to = document.getElementById('recognition-to').value;
+            const message = document.getElementById('recognition-message').value;
+
+            if (!to || !message) {
+                showResponse('recognition-response', false, '❌ Please fill in all fields');
+                return;
+            }
+
+            const data = {
+                to: to,
+                message: message,
+                category: document.getElementById('recognition-category').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/recognitions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                showResponse('recognition-response', true, `✅ Recognition sent to ${to}!`);
+                addLog('recognition', `Recognized ${to} for ${data.category}`);
+                document.getElementById('recognition-to').value = '';
+                document.getElementById('recognition-message').value = '';
+                refreshStats();
+            } catch (error) {
+                showResponse('recognition-response', false, '❌ Error sending recognition');
+                addLog('error', 'Failed to send recognition');
+            }
+        }
+
+        // Show response message
+        function showResponse(id, success, message) {
+            const element = document.getElementById(id);
+            element.textContent = message;
+            element.className = 'response ' + (success ? 'success' : 'error');
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // Add to activity log
+        function addLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            activityLog.unshift({ type, message, timestamp });
+            if (activityLog.length > 20) activityLog.pop();
+
+            const logHtml = activityLog.map(log =>
+                `<div class="log-entry ${log.type}">
+                    <strong>${log.timestamp}</strong> - ${log.message}
+                </div>`
+            ).join('');
+
+            document.getElementById('activity-log').innerHTML = logHtml;
+        }
+
+        // Auto-refresh stats every 5 seconds
+        setInterval(refreshStats, 5000);
+
+        // Initialize
+        checkStatus();
+    </script>
+</body>
+
+</html>

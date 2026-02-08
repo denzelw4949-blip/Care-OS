@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYEE
+  MANAGER
+  EXECUTIVE
+  CARE_CONSULTANT
+}
+
+enum PlatformType {
+  SLACK
+  TEAMS
+}
+
+enum CheckInVisibility {
+  PRIVATE
+  MANAGER
+  PUBLIC
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DeviationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String       @id @default(uuid())
+  platformId   String       @unique
+  platformType PlatformType
+  email        String?
+  displayName  String?
+  role         Role         @default(EMPLOYEE)
+  timezone     String       @default("America/New_York")
+  managerId    String?
+  manager      User?        @relation("ManagerToEmployee", fields: [managerId], references: [id])
+  employees    User[]       @relation("ManagerToEmployee")
+  
+  checkIns          CheckIn[]
+  assignedTasks     Task[]           @relation("AssignedTasks")
+  createdTasks      Task[]           @relation("CreatedTasks")
+  sentRecognitions  Recognition[]    @relation("SentRecognitions")
+  receivedRecognitions Recognition[] @relation("ReceivedRecognitions")
+  deviations        Deviation[]
+  dataPermissions   DataPermission[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([platformId, platformType])
+  @@index([managerId])
+}
+
+model CheckIn {
+  id             String            @id @default(uuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timestamp      DateTime          @default(now())
+  moodScore      Int               // 1-10 scale
+  workloadLevel  Int               // 1-10 scale
+  notes          String?           @db.Text
+  visibility     CheckInVisibility @default(MANAGER)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, timestamp])
+  @@index([timestamp])
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?    @db.Text
+  assignedTo  String
+  assignee    User       @relation("AssignedTasks", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assignedBy  String
+  creator     User       @relation("CreatedTasks", fields: [assignedBy], references: [id])
+  status      TaskStatus @default(PENDING)
+  dueDate     DateTime?
+  completedAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assignedTo, status])
+  @@index([dueDate])
+}
+
+model Recognition {
+  id         String   @id @default(uuid())
+  fromUserId String
+  sender     User     @relation("SentRecognitions", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  recipient  User     @relation("ReceivedRecognitions", fields: [toUserId], references: [id], onDelete: Cascade)
+  message    String   @db.Text
+  isPublic   Boolean  @default(true)
+  timestamp  DateTime @default(now())
+  
+  createdAt DateTime @default(now())
+
+  @@index([toUserId, timestamp])
+  @@index([fromUserId])
+}
+
+model Deviation {
+  id               String            @id @default(uuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  detectedAt       DateTime          @default(now())
+  severity         DeviationSeverity
+  type             String            // e.g., "mood_drop", "high_workload", "missed_checkins"
+  description      String            @db.Text
+  managerNotified  Boolean           @default(false)
+  notifiedAt       DateTime?
+  resolved         Boolean           @default(false)
+  resolvedAt       DateTime?
+  resolvedBy       String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, resolved])
+  @@index([detectedAt])
+}
+
+model DataPermission {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dataType   String   // e.g., "checkin", "task", "recognition"
+  visibleTo  String[] // Array of user IDs or role names (e.g., ["MANAGER", "user-uuid-123"])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dataType])
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  // User who performed the action
+  action    String   // e.g., "AI_RECOMMENDATION", "DATA_ACCESS", "ROLE_CHANGE"
+  resource  String   // e.g., "checkin:uuid", "user:uuid"
+  details   Json     // Additional context
+  timestamp DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+  @@index([timestamp])
+}

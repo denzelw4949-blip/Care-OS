@@ -126,6 +126,8 @@ class SlackApp {
             await ack();
 
             try {
+                const { user } = await AuthService.authenticateUser('slack', command.user_id);
+
                 const { getCompleteCheckInBlocks } = await import('./blocks/checkInBlock.js');
 
                 await client.views.open({

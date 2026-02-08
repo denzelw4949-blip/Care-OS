@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARE OS Slack Setup Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .step-number {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .step-title {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 12px;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .url-box {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', monospace;
+            font-size: 14px;
+            margin: 15px 0;
+            position: relative;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-link {
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-link:hover {
+            background: #059669;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .progress {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        .check-icon {
+            color: #10b981;
+            font-size: 5em;
+            text-align: center;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🏥 CARE OS Slack Setup</h1>
+        <p class="subtitle">Let's connect CARE OS to your Slack workspace</p>
+
+        <div class="progress">
+            <div class="progress-bar" id="progress" style="width: 0%"></div>
+        </div>
+
+        <!-- Step 1: Get ngrok URL -->
+        <div class="step active" id="step1">
+            <div class="step-header">
+                <div class="step-number">Step 1 of 5</div>
+                <div class="step-title">Get Your Public URL</div>
+            </div>
+
+            <div class="instructions">
+                <p><strong>First, we need to get your ngrok URL.</strong></p>
+                <ol>
+                    <li>Open a new browser tab</li>
+                    <li>Go to: <code>http://localhost:4040</code></li>
+                    <li>Look for the <span class="highlight">https://</span> URL under "Forwarding"</li>
+                    <li>Copy that URL and paste it below</li>
+                </ol>
+            </div>
+
+            <a href="http://localhost:4040" target="_blank" class="btn-link">
+                🌐 Open ngrok Dashboard
+            </a>
+
+            <div class="input-group" style="margin-top: 25px;">
+                <label>Your ngrok HTTPS URL:</label>
+                <input type="text" id="ngrok-url" placeholder="https://abc123.ngrok-free.app">
+            </div>
+
+            <div class="alert alert-info">
+                💡 <strong>Tip:</strong> The URL should start with https:// and end with .ngrok-free.app
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="saveNgrokUrl()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Create Slack App -->
+        <div class="step" id="step2">
+            <div class="step-header">
+                <div class="step-number">Step 2 of 5</div>
+                <div class="step-title">Create Slack App</div>
+            </div>
+
+            <div class="instructions">
+                <p><strong>Now let's create your Slack app.</strong></p>
+                <ol>
+                    <li>Click the button below to open Slack API</li>
+                    <li>Click the green <span class="highlight">"Create New App"</span> button</li>
+                    <li>Choose <span class="highlight">"From scratch"</span></li>
+                    <li>App Name: <span class="highlight">CARE OS</span></li>
+                    <li>Pick your workspace</li>
+                    <li>Click <span class="highlight">"Create App"</span></li>
+                </ol>
+            </div>
+
+            <a href="https://api.slack.com/apps" target="_blank" class="btn-link">
+                🚀 Open Slack API (New Tab)
+            </a>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
+                <button class="btn-primary" onclick="goToStep(3)">I Created the App →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Get Tokens -->
+        <div class="step" id="step3">
+            <div class="step-header">
+                <div class="step-number">Step 3 of 5</div>
+                <div class="step-title">Get Your Tokens</div>
+            </div>
+
+            <div class="instructions">
+                <p><strong>Get your Slack credentials:</strong></p>
+
+                <h3 style="margin-top: 20px;">Bot Token:</h3>
+                <ol>
+                    <li>In your Slack app, click <span class="highlight">"OAuth & Permissions"</span> in left sidebar
+                    </li>
+                    <li>Scroll to "Scopes" → Add these Bot Token Scopes:
+                        <ul>
+                            <li><code>chat:write</code></li>
+                            <li><code>commands</code></li>
+                            <li><code>users:read</code></li>
+                            <li><code>im:write</code></li>
+                            <li><code>im:history</code></li>
+                        </ul>
+                    </li>
+                    <li>Scroll up and click <span class="highlight">"Install to Workspace"</span></li>
+                    <li>Click <span class="highlight">"Allow"</span></li>
+                    <li>Copy the <span class="highlight">Bot User OAuth Token</span> (starts with xoxb-)</li>
+                </ol>
+
+                <h3 style="margin-top: 20px;">Signing Secret:</h3>
+                <ol>
+                    <li>Click <span class="highlight">"Basic Information"</span> in left sidebar</li>
+                    <li>Scroll to "App Credentials"</li>
+                    <li>Click <span class="highlight">"Show"</span> next to Signing Secret</li>
+                    <li>Copy it</li>
+                </ol>
+            </div>
+
+            <div class="input-group">
+                <label>Bot Token (xoxb-...):</label>
+                <input type="text" id="bot-token" placeholder="xoxb-your-token-here">
+            </div>
+
+            <div class="input-group">
+                <label>Signing Secret:</label>
+                <input type="text" id="signing-secret" placeholder="your-signing-secret">
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="goToStep(2)">← Back</button>
+                <button class="btn-primary" onclick="saveTokens()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Configure Webhooks -->
+        <div class="step" id="step4">
+            <div class="step-header">
+                <div class="step-number">Step 4 of 5</div>
+                <div class="step-title">Configure Webhooks</div>
+            </div>
+
+            <div class="instructions">
+                <p><strong>Set up Slack webhooks with your ngrok URL:</strong></p>
+
+                <h3>Event Subscriptions:</h3>
+                <ol>
+                    <li>In your Slack app, click <span class="highlight">"Event Subscriptions"</span></li>
+                    <li>Toggle to <span class="highlight">ON</span></li>
+                    <li>Paste this URL in "Request URL" field:</li>
+                </ol>
+                <div class="url-box">
+                    <span id="events-url">Loading...</span>
+                    <button class="copy-btn" onclick="copyUrl('events-url')">Copy</button>
+                </div>
+                <ol start="4">
+                    <li>Under "Subscribe to bot events", add: <code>app_mentions:read</code>, <code>message.im</code>
+                    </li>
+                    <li>Click <span class="highlight">"Save Changes"</span></li>
+                </ol>
+
+                <h3 style="margin-top: 20px;">Interactivity:</h3>
+                <ol>
+                    <li>Click <span class="highlight">"Interactivity & Shortcuts"</span></li>
+                    <li>Toggle to <span class="highlight">ON</span></li>
+                    <li>Paste this URL:</li>
+                </ol>
+                <div class="url-box">
+                    <span id="interactivity-url">Loading...</span>
+                    <button class="copy-btn" onclick="copyUrl('interactivity-url')">Copy</button>
+                </div>
+                <ol start="4">
+                    <li>Click <span class="highlight">"Save Changes"</span></li>
+                </ol>
+
+                <h3 style="margin-top: 20px;">Slash Commands:</h3>
+                <ol>
+                    <li>Click <span class="highlight">"Slash Commands"</span></li>
+                    <li>Create 3 commands with this URL for all:</li>
+                </ol>
+                <div class="url-box">
+                    <span id="commands-url">Loading...</span>
+                    <button class="copy-btn" onclick="copyUrl('commands-url')">Copy</button>
+                </div>
+                <ol start="3">
+                    <li>Commands to create: <code>/checkin</code>, <code>/tasks</code>, <code>/recognize</code></li>
+                </ol>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="goToStep(3)">← Back</button>
+                <button class="btn-primary" onclick="goToStep(5)">I Did All That →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Test -->
+        <div class="step" id="step5">
+            <div class="step-header">
+                <div class="step-number">Step 5 of 5</div>
+                <div class="step-title">Save & Test</div>
+            </div>
+
+            <div class="check-icon">✅</div>
+
+            <div class="alert alert-success">
+                <strong>Almost done!</strong> Click the button below to save your credentials and test the connection.
+            </div>
+
+            <div class="instructions">
+                <p><strong>After clicking "Save & Test":</strong></p>
+                <ol>
+                    <li>Your credentials will be saved to CARE OS</li>
+                    <li>The server will restart with Slack integration</li>
+                    <li>Go to Slack and try <code>/checkin</code></li>
+                </ol>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="goToStep(4)">← Back</button>
+                <button class="btn-primary" onclick="saveAndTest()">Save & Test Integration</button>
+            </div>
+
+            <div id="result" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let config = {
+            ngrokUrl: '',
+            botToken: '',
+            signingSecret: ''
+        };
+
+        function goToStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            document.getElementById('progress').style.width = (step * 20) + '%';
+        }
+
+        function saveNgrokUrl() {
+            const url = document.getElementById('ngrok-url').value.trim();
+            if (!url.startsWith('https://') || !url.includes('ngrok')) {
+                alert('Please enter a valid ngrok HTTPS URL');
+                return;
+            }
+            config.ngrokUrl = url;
+
+            // Update webhook URLs
+            document.getElementById('events-url').textContent = url + '/webhooks/slack/events';
+            document.getElementById('interactivity-url').textContent = url + '/webhooks/slack/interactions';
+            document.getElementById('commands-url').textContent = url + '/webhooks/slack/commands';
+
+            goToStep(2);
+        }
+
+        function saveTokens() {
+            const token = document.getElementById('bot-token').value.trim();
+            const secret = document.getElementById('signing-secret').value.trim();
+
+            if (!token.startsWith('xoxb-')) {
+                alert('Bot token should start with xoxb-');
+                return;
+            }
+            if (!secret) {
+                alert('Please enter your signing secret');
+                return;
+            }
+
+            config.botToken = token;
+            config.signingSecret = secret;
+            goToStep(4);
+        }
+
+        function copyUrl(id) {
+            const text = document.getElementById(id).textContent;
+            navigator.clipboard.writeText(text);
+            event.target.textContent = '✓ Copied!';
+            setTimeout(() => {
+                event.target.textContent = 'Copy';
+            }, 2000);
+        }
+
+        async function saveAndTest() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="alert alert-info">⏳ Saving credentials...</div>';
+
+            try {
+                // Save to .env file
+                const envContent = `
+SLACK_BOT_TOKEN=${config.botToken}
+SLACK_SIGNING_SECRET=${config.signingSecret}
+SLACK_WEBHOOK_URL=${config.ngrokUrl}
+                `.trim();
+
+                const response = await fetch('http://localhost:3000/api/system/save-slack-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        botToken: config.botToken,
+                        signingSecret: config.signingSecret,
+                        webhookUrl: config.ngrokUrl
+                    })
+                });
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>🎉 Success!</strong><br><br>
+                            Your Slack integration is configured!<br>
+                            Go to Slack and try typing: <code>/checkin</code>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <strong>Manual Setup Needed</strong><br><br>
+                            Add these lines to your <code>.env</code> file:<br>
+                            <div class="url-box" style="margin-top: 10px;">
+SLACK_BOT_TOKEN=${config.botToken}<br>
+SLACK_SIGNING_SECRET=${config.signingSecret}
+                            </div>
+                            Then restart the CARE OS server.
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <strong>Manual Setup</strong><br><br>
+                        Add these to your <code>.env</code> file:<br>
+                        <div class="url-box" style="margin-top: 10px;">
+SLACK_BOT_TOKEN=${config.botToken}<br>
+SLACK_SIGNING_SECRET=${config.signingSecret}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

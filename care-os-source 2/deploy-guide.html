@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy CARE OS to Railway - Step by Step</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .step h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .step ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .step li {
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        .path {
+            background: #1f2937;
+            color: #10b981;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Monaco', monospace;
+            margin: 10px 0;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Deploy CARE OS to Railway</h1>
+        <p class="subtitle">Get your live URL in 10 minutes - No credit card needed!</p>
+
+        <div class="alert alert-info">
+            <strong>📦 Your code is ready!</strong> All files are committed and ready to deploy.
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step">
+            <span class="step-number">Step 1</span>
+            <h3>Create Railway Account</h3>
+            <ol>
+                <li>Click the button below to go to Railway</li>
+                <li>Click <span class="highlight">"Start a New Project"</span></li>
+                <li>Sign up with <span class="highlight">GitHub</span> or <span class="highlight">Email</span></li>
+            </ol>
+            <a href="https://railway.app" target="_blank" class="btn">🌐 Open Railway.app</a>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step">
+            <span class="step-number">Step 2</span>
+            <h3>Upload Your Code</h3>
+            <p><strong>Option A: Using GitHub (Recommended)</strong></p>
+            <ol>
+                <li>Create a new repository on GitHub</li>
+                <li>Push your code:
+                    <div class="path">
+                        cd /Users/denzelwilliams/.gemini/antigravity/playground/sonic-plasma<br>
+                        git remote add origin https://github.com/YOUR-USERNAME/care-os.git<br>
+                        git push -u origin main
+                    </div>
+                </li>
+                <li>In Railway, select <span class="highlight">"Deploy from GitHub repo"</span></li>
+                <li>Connect your GitHub account</li>
+                <li>Select the <code>care-os</code> repository</li>
+            </ol>
+
+            <p style="margin-top: 20px;"><strong>Option B: Manual Upload</strong></p>
+            <ol>
+                <li>Zip your project folder</li>
+                <li>In Railway, select <span class="highlight">"Deploy from File"</span></li>
+                <li>Upload the zip file</li>
+            </ol>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step">
+            <span class="step-number">Step 3</span>
+            <h3>Railway Auto-Detects Everything!</h3>
+            <p>Railway will automatically:</p>
+            <ul style="margin-left: 20px;">
+                <li>✅ Detect Node.js app</li>
+                <li>✅ Install dependencies</li>
+                <li>✅ Run <code>npm start</code></li>
+                <li>✅ Generate a public URL</li>
+            </ul>
+            <div class="alert alert-success">
+                <strong>💡 Your URL will look like:</strong><br>
+                <code>https://care-os-production.up.railway.app</code>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step">
+            <span class="step-number">Step 4</span>
+            <h3>Configure Slack Integration</h3>
+            <ol>
+                <li>Copy your Railway URL (e.g., <code>https://care-os.up.railway.app</code>)</li>
+                <li>Go to <a href="https://api.slack.com/apps" target="_blank">Slack API</a></li>
+                <li>Create your Slack app (see Slack setup guide)</li>
+                <li>Use your Railway URL for webhooks:
+                    <ul style="margin-top: 10px;">
+                        <li>Events: <code>https://your-url.railway.app/webhooks/slack/events</code></li>
+                        <li>Interactivity: <code>https://your-url.railway.app/webhooks/slack/interactions</code></li>
+                        <li>Commands: <code>https://your-url.railway.app/webhooks/slack/commands</code></li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step">
+            <span class="step-number">Step 5</span>
+            <h3>Add Slack Credentials to Railway</h3>
+            <ol>
+                <li>In Railway dashboard, click on your project</li>
+                <li>Go to <span class="highlight">"Variables"</span> tab</li>
+                <li>Add these environment variables:
+                    <div class="path">
+                        SLACK_BOT_TOKEN=xoxb-your-token<br>
+                        SLACK_SIGNING_SECRET=your-secret<br>
+                        PORT=3000
+                    </div>
+                </li>
+                <li>Click <span class="highlight">"Deploy"</span></li>
+            </ol>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step">
+            <span class="step-number">Step 6</span>
+            <h3>Test It!</h3>
+            <ol>
+                <li>Go to your Slack workspace</li>
+                <li>Type <code>/checkin</code></li>
+                <li>🎉 CARE OS should respond!</li>
+            </ol>
+        </div>
+
+        <div class="alert alert-success">
+            <strong>🎊 Done!</strong> CARE OS is now live and integrated with Slack!
+        </div>
+
+        <div class="alert alert-info">
+            <strong>Need help?</strong> Check out the detailed guides in your project:
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li><code>DEPLOYMENT.md</code> - Deployment details</li>
+                <li><code>docs/PLATFORM_SETUP.md</code> - Slack setup guide</li>
+                <li><code>README.md</code> - Full documentation</li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>
