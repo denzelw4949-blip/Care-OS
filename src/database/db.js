@@ -17,24 +17,36 @@ let pool;
 
 if (hasDbConfig) {
     // Create database connection pool
-    // Create database connection pool
-    // Prioritize DATABASE_URL, then explicit config, then standard PG env vars
     const poolConfig = {};
+
+    // DIAGNOSTIC LOGGING
+    console.log('🔌 DB CONFIG PROBE:', {
+        has_url: !!process.env.DATABASE_URL,
+        pghost: process.env.PGHOST,
+        config_host: config.database.host,
+        node_env: process.env.NODE_ENV
+    });
 
     if (process.env.DATABASE_URL) {
         poolConfig.connectionString = process.env.DATABASE_URL;
         poolConfig.ssl = { rejectUnauthorized: false };
     } else {
-        poolConfig.host = config.database.host;
-        poolConfig.port = config.database.port;
-        poolConfig.database = config.database.name;
-        poolConfig.user = config.database.user;
-        poolConfig.password = config.database.password;
-        // Standard PG env vars will be used by pg.Pool if these are undefined
+        // If config.database.host is 'localhost' (default) AND PGHOST exists, 
+        // DO NOT set host/port/user/etc - let pg.Pool use the env vars directly.
+        // We only use config.* if they are NOT localhost default.
+        if (config.database.host !== 'localhost' || !process.env.PGHOST) {
+            poolConfig.host = config.database.host;
+            poolConfig.port = config.database.port;
+            poolConfig.database = config.database.name;
+            poolConfig.user = config.database.user;
+            poolConfig.password = config.database.password;
+        }
     }
 
     // Explicitly add SSL for Railway if not using DATABASE_URL but host is not local
-    if (!poolConfig.connectionString && config.database.host && config.database.host !== 'localhost' && config.database.host !== '127.0.0.1') {
+    // OR if we are using PGHOST (which implies remote DB on Railway)
+    const isRemote = (poolConfig.host && poolConfig.host !== 'localhost') || process.env.PGHOST;
+    if (!poolConfig.connectionString && isRemote && process.env.NODE_ENV === 'production') {
         poolConfig.ssl = { rejectUnauthorized: false };
     }
 
