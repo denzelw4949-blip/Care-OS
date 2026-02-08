@@ -1,5 +1,4 @@
-import AuthService from '../../../services/AuthService.js';
-import TaskService from '../../../services/TaskService.js';
+// Demo mode task handler - no database required
 import { getTaskListBlocks } from '../blocks/checkInBlock.js';
 
 /**
@@ -7,16 +6,25 @@ import { getTaskListBlocks } from '../blocks/checkInBlock.js';
  */
 export const handleTaskInteraction = async (slackUserId, client, triggerId = null) => {
     try {
-        // Authenticate user
-        const { user } = await AuthService.authenticateUser('slack', slackUserId);
+        // Demo mode - show sample tasks
+        const demoTasks = [
+            {
+                id: '1',
+                title: 'Complete daily check-in',
+                description: 'Share how you\'re feeling today',
+                status: 'pending',
+                priority: 'medium'
+            },
+            {
+                id: '2',
+                title: 'Review team recognitions',
+                description: 'Acknowledge great work from teammates',
+                status: 'pending',
+                priority: 'low'
+            }
+        ];
 
-        // Get user's tasks
-        const tasks = await TaskService.getUserTasks(user.id, user.id, user.role, {
-            status: 'pending',
-            limit: 10,
-        });
-
-        const blocks = getTaskListBlocks(tasks);
+        const blocks = getTaskListBlocks(demoTasks);
 
         if (triggerId) {
             // Show in modal
@@ -55,9 +63,12 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
  */
 export const handleTaskCompletion = async (slackUserId, taskId, client) => {
     try {
-        const { user } = await AuthService.authenticateUser('slack', slackUserId);
-
-        await TaskService.completeTask(taskId, user.id);
+        // Demo mode - just log and confirm
+        console.log('Task completed:', {
+            user: slackUserId,
+            taskId,
+            timestamp: new Date().toISOString()
+        });
 
         await client.chat.postMessage({
             channel: slackUserId,
