@@ -1,21 +1,38 @@
 {
-  "name": "care-os",
-  "version": "1.0.0",
-  "main": "src/server.js",
-  "type": "module",
-  "scripts": {
-    "start": "node src/demo-server.js",
-    "dev": "node src/demo-server.js",
-    "build": "echo 'No build'"
-  },
-  "engines": { "node": ">=18.0.0" },
-  "dependencies": {
-        "zod": "^3.22.4",
-    "@slack/bolt": "^3.17.1",
-    "axios": "^1.6.5",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "node-cron": "^3.0.3"
-  }
+      "name": "care-os",
+      "version": "1.0.0",
+      "description": "Human-centered wellbeing and task management system",
+      "main": "src/server.js",
+      "type": "module",
+      "scripts": {
+                "start": "node src/demo-server.js",
+                "dev": "node src/demo-server.js",
+                "build": "echo 'No build step required'"
+      },
+      "engines": {
+                "node": ">=18.0.0",
+                "npm": ">=9.0.0"
+      },
+      "dependencies": {
+                "@slack/bolt": "^3.17.1",
+                "axios": "^1.6.5",
+
+                "bcrypt": "^5.1.1",
+                "botbuilder": "^4.21.1",
+                "cors": "^2.8.5",
+                "dotenv": "^16.3.1",
+                "express": "^4.18.2",
+                "express-rate-limit": "^7.1.5",
+                "helmet": "^7.1.0",
+                "ioredis": "^5.3.2",
+                "jsonwebtoken": "^9.0.2",
+                "node-cron": "^3.0.3",
+                "openai": "^4.24.1",
+                "pg": "^8.11.3",
+                "winston": "^3.11.0",
+                "zod": "^3.22.4"
+      },
+      "keywords": ["wellbeing", "slack"],
+      "author": "Your Organization",
+      "license": "MIT"
 }
