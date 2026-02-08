@@ -11,6 +11,19 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 
+// --- CRASH PREVENTION ---
+// Prevent the server from crashing on unhandled Slack SDK or other async errors
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // Do not exit the process
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    // Do not exit the process
+});
+// ------------------------
+
 // Mount Slack webhooks BEFORE body parsers (Slack needs raw body)
 // This handles /webhooks/slack/events, /webhooks/slack/commands etc.
 // The receiver is initialized with defaults, so we need to route explicitly if we want custom paths
