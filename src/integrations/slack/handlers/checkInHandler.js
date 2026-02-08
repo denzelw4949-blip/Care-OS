@@ -10,11 +10,17 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
     try {
         const hasDatabase = isDatabaseAvailable();
         let user = null;
+        let useDatabaseMode = hasDatabase;
 
-        // Only authenticate if database is available
+        // Try to authenticate if database is available
         if (hasDatabase) {
-            const authResult = await AuthService.authenticateUser('slack', slackUserId);
-            user = authResult.user;
+            try {
+                const authResult = await AuthService.authenticateUser('slack', slackUserId);
+                user = authResult.user;
+            } catch (dbError) {
+                console.warn('⚠️  Database auth failed, falling back to demo mode:', dbError.message);
+                useDatabaseMode = false;
+            }
         }
 
         if (viewData) {
@@ -30,9 +36,19 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                 visibility: values.privacy?.privacy_select?.selected_option?.value || 'manager_only',
             };
 
-            if (hasDatabase && user) {
-                // Save to database
-                await CheckInService.submitCheckIn(user.id, checkInData);
+            if (useDatabaseMode && user) {
+                // Try to save to database
+                try {
+                    await CheckInService.submitCheckIn(user.id, checkInData);
+                    console.log('✅ Check-in saved to database');
+                } catch (dbError) {
+                    console.warn('⚠️  Database save failed, logging only:', dbError.message);
+                    console.log('✏️ Check-in (fallback demo mode):', {
+                        user: slackUserId,
+                        data: checkInData,
+                        timestamp: new Date().toISOString()
+                    });
+                }
             } else {
                 // Demo mode - log only
                 console.log('✏️ Check-in (demo mode):', {

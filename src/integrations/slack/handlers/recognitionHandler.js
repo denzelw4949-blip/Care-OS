@@ -19,11 +19,26 @@ export const handleRecognitionSubmit = async (slackUserId, viewData, client) => 
             throw new Error('Missing required fields');
         }
 
+        let useDatabaseMode = hasDatabase;
+
         if (hasDatabase) {
-            // Authenticate users and save to database
-            const { user } = await AuthService.authenticateUser('slack', slackUserId);
-            const { user: recipient } = await AuthService.authenticateUser('slack', toSlackUserId);
-            await RecognitionService.createRecognition(user.id, recipient.id, message, category);
+            try {
+                // Authenticate users and save to database
+                const { user } = await AuthService.authenticateUser('slack', slackUserId);
+                const { user: recipient } = await AuthService.authenticateUser('slack', toSlackUserId);
+                await RecognitionService.createRecognition(user.id, recipient.id, message, category);
+                console.log('✅ Recognition saved to database');
+            } catch (dbError) {
+                console.warn('⚠️  Database operation failed, falling back to demo mode:', dbError.message);
+                console.log('✏️ Recognition (fallback demo mode):', {
+                    from: slackUserId,
+                    to: toSlackUserId,
+                    message,
+                    category,
+                    timestamp: new Date().toISOString()
+                });
+                useDatabaseMode = false;
+            }
         } else {
             // Demo mode - log only
             console.log('✏️ Recognition (demo mode):', {

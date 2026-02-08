@@ -128,9 +128,13 @@ class SlackApp {
             try {
                 const { isDatabaseAvailable } = await import('./../../database/dbStatus.js');
 
-                // Only authenticate if database is available
+                // Only authenticate if database is available - but don't block modal if it fails
                 if (isDatabaseAvailable()) {
-                    const { user } = await AuthService.authenticateUser('slack', command.user_id);
+                    try {
+                        const { user } = await AuthService.authenticateUser('slack', command.user_id);
+                    } catch (dbError) {
+                        console.warn('⚠️  Auth failed for /checkin, continuing anyway:', dbError.message);
+                    }
                 }
 
                 const { getCompleteCheckInBlocks } = await import('./blocks/checkInBlock.js');
