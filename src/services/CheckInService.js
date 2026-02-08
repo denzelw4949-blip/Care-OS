@@ -117,7 +117,7 @@ export class CheckInService {
         if (deviations.length > 0) {
             // Import here to avoid circular dependency
             const { DeviationDetectionService } = await import('./DeviationDetectionService.js');
-            await DeviationDetectionService.createDeviation Alert(userId, deviations);
+            await DeviationDetectionService.createDeviationAlert(userId, deviations);
         }
 
         return deviations;
