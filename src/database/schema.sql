@@ -77,6 +77,9 @@ CREATE TABLE tasks (
     priority INTEGER CHECK (priority BETWEEN 1 AND 5) DEFAULT 3,
     due_date TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
+    approval_status VARCHAR(20) DEFAULT 'approved' CHECK (approval_status IN ('approved', 'pending', 'rejected')),
+    requires_approval BOOLEAN DEFAULT false,
+    completion_shared BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

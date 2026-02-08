@@ -89,6 +89,26 @@ export class AuthService {
     }
 
     /**
+     * Change user's role (admin only)
+     */
+    static async changeUserRole(adminUserId, targetUserId, newRole) {
+        const admin = await User.findById(adminUserId);
+
+        if (!admin || !['executive', 'admin'].includes(admin.role)) {
+            throw new Error('Unauthorized: Admin access required');
+        }
+
+        return await User.updateRole(targetUserId, newRole);
+    }
+
+    /**
+     * Get user by internal ID
+     */
+    static async getUserByInternalId(userId) {
+        return await User.findById(userId);
+    }
+
+    /**
      * Map platform user to internal user
      * @param {string} platformType - 'slack' or 'teams'
      * @param {string} platformUserId - Platform-specific user ID

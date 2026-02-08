@@ -9,7 +9,9 @@ export class TaskService {
     /**
      * Create a new task
      */
-    static async createTask(assignedTo, assignedBy, taskData) {
+    static async createTask(taskData) {
+        const { assignedTo, assignedBy, title, description, status, priority, dueDate, approvalStatus, requiresApproval } = taskData;
+
         // Validate users exist
         const assignedToUser = await User.findById(assignedTo);
         const assignedByUser = await User.findById(assignedBy);
@@ -40,11 +42,13 @@ export class TaskService {
         return await Task.create({
             assignedTo,
             assignedBy,
-            title: taskData.title,
-            description: taskData.description,
-            status: taskData.status || 'pending',
-            priority: taskData.priority || 3,
-            dueDate: taskData.dueDate,
+            title,
+            description,
+            status: status || 'pending',
+            priority: priority || 3,
+            dueDate,
+            approvalStatus: approvalStatus || 'approved',
+            requiresApproval: requiresApproval || false,
         });
     }
 
@@ -135,6 +139,70 @@ export class TaskService {
      */
     static async getStatistics(userId, days = 30) {
         return await Task.getStatistics(userId, days);
+    }
+
+    /**
+     * Approve a task
+     */
+    static async approveTask(taskId, managerId) {
+        const task = await Task.findById(taskId);
+
+        if (!task) {
+            throw new Error('Task not found');
+        }
+
+        if (!task.requires_approval) {
+            throw new Error('Task does not require approval');
+        }
+
+        // Verify manager has permission
+        const assignee = await User.findById(task.assigned_to);
+        if (assignee.manager_id !== managerId) {
+            throw new Error('Only the assignee\'s manager can approve this task');
+        }
+
+        return await Task.update(taskId, { approvalStatus: 'approved' });
+    }
+
+    /**
+     * Reject a task
+     */
+    static async rejectTask(taskId, managerId, reason) {
+        const task = await Task.findById(taskId);
+
+        if (!task) {
+            throw new Error('Task not found');
+        }
+
+        if (!task.requires_approval) {
+            throw new Error('Task does not require approval');
+        }
+
+        // Verify manager has permission
+        const assignee = await User.findById(task.assigned_to);
+        if (assignee.manager_id !== managerId) {
+            throw new Error('Only the assignee\'s manager can reject this task');
+        }
+
+        return await Task.update(taskId, { approvalStatus: 'rejected' });
+    }
+
+    /**
+     * Get user's manager
+     */
+    static async getUserManager(userId) {
+        const user = await User.findById(userId);
+        if (!user || !user.manager_id) {
+            return null;
+        }
+        return await User.findById(user.manager_id);
+    }
+
+    /**
+     * Mark task completion as shared
+     */
+    static async markCompletionShared(taskId, shared = true) {
+        return await Task.update(taskId, { completionShared: shared });
     }
 }
 

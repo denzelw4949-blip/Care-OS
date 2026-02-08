@@ -92,42 +92,87 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
 /**
  * Handle task completion
  */
-export const handleTaskCompletion = async (slackUserId, taskId, client) => {
+/**
+ * Handle task completion button click - now triggers "Share win?" modal
+ */
+export const handleTaskCompletion = async (action, client, userId) => {
     try {
-        const hasDatabase = isDatabaseAvailable();
+        const taskId = action.value;
 
-        if (hasDatabase) {
-            try {
-                const { user } = await AuthService.authenticateUser('slack', slackUserId);
-                await TaskService.completeTask(taskId, user.id);
-                console.log('✅ Task completion saved to database');
-            } catch (dbError) {
-                console.warn('⚠️  Database update failed, logging only:', dbError.message);
-                console.log('✏️ Task completed (fallback demo mode):', {
-                    user: slackUserId,
-                    taskId,
-                    timestamp: new Date().toISOString()
-                });
-            }
-        } else {
-            console.log('✏️ Task completed (demo mode):', {
-                user: slackUserId,
-                taskId,
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        await client.chat.postMessage({
-            channel: slackUserId,
-            text: '✅ Task completed! Great work! 🎉',
+        // Open "Share this win?" modal
+        await client.views.open({
+            trigger_id: action.trigger_id,
+            view: {
+                type: 'modal',
+                callback_id: 'share_win_modal',
+                title: {
+                    type: 'plain_text',
+                    text: '🎉 Task Complete!',
+                },
+                submit: {
+                    type: 'plain_text',
+                    text: 'Confirm',
+                },
+                private_metadata: JSON.stringify({ taskId }),
+                blocks: [
+                    {
+                        type: 'section',
+                        text: {
+                            type: 'mrkdwn',
+                            text: '🎉 *Congratulations on completing your task!*\n\nWould you like to share this achievement with the team?',
+                        },
+                    },
+                    {
+                        type: 'input',
+                        block_id: 'share_choice',
+                        element: {
+                            type: 'radio_buttons',
+                            action_id: 'share_select',
+                            options: [
+                                {
+                                    text: { type: 'plain_text', text: '✨ Yes, share publicly with the team!' },
+                                    value: 'public',
+                                },
+                                {
+                                    text: { type: 'plain_text', text: '🔒 No, keep it private (notify manager only)' },
+                                    value: 'private',
+                                },
+                            ],
+                            initial_option: {
+                                text: { type: 'plain_text', text: '✨ Yes, share publicly with the team!' },
+                                value: 'public',
+                            },
+                        },
+                        label: {
+                            type: 'plain_text',
+                            text: 'Share this win?',
+                        },
+                    },
+                ],
+            },
         });
     } catch (error) {
-        console.error('Error completing task:', error);
+        console.error('Error opening share win modal:', error);
 
-        await client.chat.postMessage({
-            channel: slackUserId,
-            text: '❌ Sorry, there was an error completing the task.',
-        });
+        // Fallback: complete task silently
+        try {
+            const hasDatabase = isDatabaseAvailable();
+            if (hasDatabase) {
+                const { user } = await AuthService.authenticateUser('slack', userId);
+                await TaskService.completeTask(action.value, user.id);
+            }
+
+            await client.chat.postMessage({
+                channel: userId,
+                text: '✅ Task completed!',
+            });
+        } catch (fallbackError) {
+            console.error('Error in fallback completion:', fallbackError);
+            await client.chat.postMessage({
+                channel: userId,
+                text: '❌ Sorry, there was an error completing the task.',
+            });
+        }
     }
 };
 

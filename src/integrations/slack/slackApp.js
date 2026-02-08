@@ -171,6 +171,12 @@ class SlackApp {
             }
         });
 
+        // /add-task command
+        this.app.command('/add-task', async ({ command, ack, client }) => {
+            const { handleAddTaskCommand } = await import('./handlers/addTaskHandler.js');
+            await handleAddTaskCommand(command, ack, client);
+        });
+
         // /recognize command
         this.app.command('/recognize', async ({ command, ack, client }) => {
             await ack();
@@ -249,6 +255,33 @@ class SlackApp {
         this.app.view('recognition_modal', async ({ ack, body, view, client }) => {
             await ack();
             await handleRecognitionSubmit(body.user.id, view, client);
+        });
+
+        // Add task modal submission
+        this.app.view('add_task_modal', async ({ ack, body, view, client }) => {
+            await ack();
+            const { handleAddTaskSubmission } = await import('./handlers/addTaskHandler.js');
+            await handleAddTaskSubmission(view, client, body.user.id);
+        });
+
+        // Share win modal submission
+        this.app.view('share_win_modal', async ({ ack, body, view, client }) => {
+            await ack();
+            const { handleShareWinSubmission } = await import('./handlers/taskApprovalHandler.js');
+            await handleShareWinSubmission(view, client, body.user.id);
+        });
+
+        // Task approval actions
+        this.app.action('approve_task', async ({ ack, body, action, client }) => {
+            await ack();
+            const { handleTaskApproval } = await import('./handlers/taskApprovalHandler.js');
+            await handleTaskApproval(action, client, body.user.id);
+        });
+
+        this.app.action('reject_task', async ({ ack, body, action, client }) => {
+            await ack();
+            const { handleTaskApproval } = await import('./handlers/taskApprovalHandler.js');
+            await handleTaskApproval(action, client, body.user.id);
         });
     }
 
