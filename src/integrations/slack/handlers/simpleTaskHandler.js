@@ -85,7 +85,7 @@ export const handleSimpleTaskSubmission = async (view, client, userId) => {
         console.error('Error creating simple task:', error);
         await client.chat.postMessage({
             channel: userId,
-            text: '❌ Sorry, there was an error creating the task.',
+            text: `❌ Error creating task: ${error.message}`,
         });
     }
 };
