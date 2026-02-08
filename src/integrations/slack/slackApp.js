@@ -3,6 +3,7 @@ import config from '../../config/index.js';
 import { handleCheckInInteraction } from './handlers/checkInHandler.js';
 import { handleTaskInteraction } from './handlers/taskHandler.js';
 import { handleRecognitionSubmit } from './handlers/recognitionHandler.js';
+import { handleSimpleTaskCreation, handleSimpleTaskSubmission, handleTaskCompletionWithNotification } from './handlers/simpleTaskHandler.js';
 import AuthService from '../../services/AuthService.js';
 
 /**
