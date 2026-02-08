@@ -32,26 +32,12 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
 
         const blocks = getTaskListBlocks(tasks);
 
-        if (triggerId) {
-            // Show in modal
-            await client.views.open({
-                trigger_id: triggerId,
-                view: {
-                    type: 'modal',
-                    title: {
-                        type: 'plain_text',
-                        text: 'Your Tasks',
-                    },
-                    blocks,
-                },
-            });
-        } else {
-            // Send as message
-            await client.chat.postMessage({
-                channel: slackUserId,
-                blocks,
-            });
-        }
+        // Always send as message (buttons in modals don't trigger action handlers properly)
+        await client.chat.postMessage({
+            channel: slackUserId,
+            blocks,
+            text: '📋 Your Tasks', // Fallback text
+        });
     } catch (error) {
         console.error('Error in task interaction:', error);
 
