@@ -86,14 +86,10 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                         'overwhelmed': '😫'
                     }[checkInData.mood] || '😊';
 
-                    // Get energy indicator
-                    const energyBar = '█'.repeat(Math.floor(checkInData.energyLevel / 2)) + '░'.repeat(5 - Math.floor(checkInData.energyLevel / 2));
-
                     console.log('📝 Attempting to post to channel with data:', {
                         mood: checkInData.mood,
                         moodEmoji,
-                        energyLevel: checkInData.energyLevel,
-                        energyBar
+                        energyLevel: checkInData.energyLevel
                     });
 
                     const result = await client.chat.postMessage({
@@ -112,7 +108,7 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                                 fields: [
                                     {
                                         type: 'mrkdwn',
-                                        text: `*Energy:* ${energyBar} ${checkInData.energyLevel}/10`
+                                        text: `*Energy:* ${checkInData.energyLevel}/10`
                                     },
                                     {
                                         type: 'mrkdwn',
