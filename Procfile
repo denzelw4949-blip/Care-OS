@@ -1,1 +1,1 @@
-web: node src/demo-server.js
+web: node src/simple-server.js
