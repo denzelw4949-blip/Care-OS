@@ -29,33 +29,8 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
             tasks = [];
         }
 
-        const blocks = tasks.length > 0
-            ? getTaskListBlocks(tasks)
-            : [
-                {
-                    type: 'section',
-                    text: {
-                        type: 'mrkdwn',
-                        text: '📋 *Your Tasks*'
-                    }
-                },
-                {
-                    type: 'section',
-                    text: {
-                        type: 'mrkdwn',
-                        text: 'You have no pending tasks right now! 🎉\n\n_Tasks can be assigned by managers or created through your dashboard._'
-                    }
-                },
-                {
-                    type: 'context',
-                    elements: [
-                        {
-                            type: 'mrkdwn',
-                            text: '💡 Tasks will appear here when you have work assigned'
-                        }
-                    ]
-                }
-            ];
+
+        const blocks = getTaskListBlocks(tasks);
 
         if (triggerId) {
             // Show in modal
