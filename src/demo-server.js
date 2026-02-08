@@ -254,5 +254,7 @@ let slackApp;
 ╚══════════════════════════════════════════════════════════╝
   `);
     });
+})(); // Close the async IIFE
 
-    export default app;
+export default app;
+
