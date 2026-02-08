@@ -64,14 +64,20 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                 blocks: getCheckInSuccessBlocks(),
             });
 
+            // DEBUG: Log visibility value
+            console.log('🔍 DEBUG - Check-in visibility value:', checkInData.visibility);
+
             // If visibility is PUBLIC, share to general/team channel
             if (checkInData.visibility === 'public') {
+                console.log('✅ Visibility is public, attempting to share to #general...');
                 try {
                     // Get mood emoji
                     const moodEmoji = {
                         'great': '😄',
                         'good': '😊',
                         'okay': '😐',
+                        'not_great': '😕',
+                        'struggling': '😞',
                         'stressed': '😰',
                         'overwhelmed': '😫'
                     }[checkInData.mood] || '😊';
@@ -80,7 +86,7 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                     const energyBar = '█'.repeat(Math.floor(checkInData.energyLevel / 2)) + '░'.repeat(5 - Math.floor(checkInData.energyLevel / 2));
 
                     await client.chat.postMessage({
-                        channel: 'general', // Post to #general channel
+                        channel: '#general', // Post to #general channel
                         blocks: [
                             {
                                 type: 'section',
@@ -128,11 +134,14 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                             }
                         ]
                     });
-                    console.log('✅ Public check-in shared to #general channel');
+                    console.log('✅ Public check-in shared to #general channel successfully!');
                 } catch (channelError) {
-                    console.error('Failed to post public check-in:', channelError.message);
+                    console.error('❌ FAILED to post public check-in to #general:', channelError.message);
+                    console.error('Full error:', channelError);
                     // Don't fail the whole check-in if channel post fails
                 }
+            } else {
+                console.log('🔒 Visibility is NOT public, skipping channel post. Value:', checkInData.visibility);
             }
         } else if (triggerId) {
             // Open check-in modal
