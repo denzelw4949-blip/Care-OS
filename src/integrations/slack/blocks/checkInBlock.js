@@ -34,35 +34,27 @@ export const getCheckInWelcomeBlocks = () => {
 export const getEnergyLevelBlock = () => {
     return [
         {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: '*⚡ Energy Level*\nHow energized do you feel today?',
-            },
-        },
-        {
-            type: 'actions',
+            type: 'input',
             block_id: 'energy_level',
-            elements: [
-                {
-                    type: 'static_select',
-                    action_id: 'energy_select',
-                    placeholder: {
-                        type: 'plain_text',
-                        text: 'Select your energy level',
-                    },
-                    options: Array.from({ length: 10 }, (_, i) => ({
-                        text: {
-                            type: 'plain_text',
-                            text: `${i + 1} ${i < 3 ? '😴' : i < 6 ? '😐' : '🚀'}`,
-                        },
-                        value: String(i + 1),
-                    })),
+            element: {
+                type: 'static_select',
+                action_id: 'energy_select',
+                placeholder: {
+                    type: 'plain_text',
+                    text: 'Select your energy level',
                 },
-            ],
-        },
-        {
-            type: 'divider',
+                options: Array.from({ length: 10 }, (_, i) => ({
+                    text: {
+                        type: 'plain_text',
+                        text: `${i + 1} ${i < 3 ? '😴' : i < 6 ? '😐' : '🚀'}`,
+                    },
+                    value: String(i + 1),
+                })),
+            },
+            label: {
+                type: 'plain_text',
+                text: '⚡ Energy Level',
+            },
         },
     ];
 };
@@ -73,35 +65,27 @@ export const getEnergyLevelBlock = () => {
 export const getStressLevelBlock = () => {
     return [
         {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: '*😌 Stress Level*\nHow stressed are you feeling?',
-            },
-        },
-        {
-            type: 'actions',
+            type: 'input',
             block_id: 'stress_level',
-            elements: [
-                {
-                    type: 'static_select',
-                    action_id: 'stress_select',
-                    placeholder: {
-                        type: 'plain_text',
-                        text: 'Select your stress level',
-                    },
-                    options: Array.from({ length: 10 }, (_, i) => ({
-                        text: {
-                            type: 'plain_text',
-                            text: `${i + 1} ${i < 3 ? '😊' : i < 6 ? '😐' : '😰'}`,
-                        },
-                        value: String(i + 1),
-                    })),
+            element: {
+                type: 'static_select',
+                action_id: 'stress_select',
+                placeholder: {
+                    type: 'plain_text',
+                    text: 'Select your stress level',
                 },
-            ],
-        },
-        {
-            type: 'divider',
+                options: Array.from({ length: 10 }, (_, i) => ({
+                    text: {
+                        type: 'plain_text',
+                        text: `${i + 1} ${i < 3 ? '😊' : i < 6 ? '😐' : '😰'}`,
+                    },
+                    value: String(i + 1),
+                })),
+            },
+            label: {
+                type: 'plain_text',
+                text: '😌 Stress Level',
+            },
         },
     ];
 };
@@ -112,35 +96,27 @@ export const getStressLevelBlock = () => {
 export const getWorkloadLevelBlock = () => {
     return [
         {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: '*📋 Workload Level*\nHow would you describe your current workload?',
-            },
-        },
-        {
-            type: 'actions',
+            type: 'input',
             block_id: 'workload_level',
-            elements: [
-                {
-                    type: 'static_select',
-                    action_id: 'workload_select',
-                    placeholder: {
-                        type: 'plain_text',
-                        text: 'Select your workload level',
-                    },
-                    options: Array.from({ length: 10 }, (_, i) => ({
-                        text: {
-                            type: 'plain_text',
-                            text: `${i + 1} ${i < 3 ? '🏖️' : i < 6 ? '📝' : '🔥'}`,
-                        },
-                        value: String(i + 1),
-                    })),
+            element: {
+                type: 'static_select',
+                action_id: 'workload_select',
+                placeholder: {
+                    type: 'plain_text',
+                    text: 'Select your workload level',
                 },
-            ],
-        },
-        {
-            type: 'divider',
+                options: Array.from({ length: 10 }, (_, i) => ({
+                    text: {
+                        type: 'plain_text',
+                        text: `${i + 1} ${i < 3 ? '🏖️' : i < 6 ? '📝' : '🔥'}`,
+                    },
+                    value: String(i + 1),
+                })),
+            },
+            label: {
+                type: 'plain_text',
+                text: '📋 Workload Level',
+            },
         },
     ];
 };
@@ -151,35 +127,27 @@ export const getWorkloadLevelBlock = () => {
 export const getMoodBlock = () => {
     return [
         {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: '*😊 Overall Mood*\nHow would you describe your mood today?',
-            },
-        },
-        {
-            type: 'actions',
+            type: 'input',
             block_id: 'mood',
-            elements: [
-                {
-                    type: 'static_select',
-                    action_id: 'mood_select',
-                    placeholder: {
-                        type: 'plain_text',
-                        text: 'Select your mood',
-                    },
-                    options: [
-                        { text: { type: 'plain_text', text: '😄 Great' }, value: 'great' },
-                        { text: { type: 'plain_text', text: '🙂 Good' }, value: 'good' },
-                        { text: { type: 'plain_text', text: '😐 Okay' }, value: 'okay' },
-                        { text: { type: 'plain_text', text: '😕 Not great' }, value: 'not_great' },
-                        { text: { type: 'plain_text', text: '😞 Struggling' }, value: 'struggling' },
-                    ],
+            element: {
+                type: 'static_select',
+                action_id: 'mood_select',
+                placeholder: {
+                    type: 'plain_text',
+                    text: 'Select your mood',
                 },
-            ],
-        },
-        {
-            type: 'divider',
+                options: [
+                    { text: { type: 'plain_text', text: '😄 Great' }, value: 'great' },
+                    { text: { type: 'plain_text', text: '🙂 Good' }, value: 'good' },
+                    { text: { type: 'plain_text', text: '😐 Okay' }, value: 'okay' },
+                    { text: { type: 'plain_text', text: '😕 Not great' }, value: 'not_great' },
+                    { text: { type: 'plain_text', text: '😞 Struggling' }, value: 'struggling' },
+                ],
+            },
+            label: {
+                type: 'plain_text',
+                text: '😊 Overall Mood',
+            },
         },
     ];
 };
@@ -219,53 +187,25 @@ export const getNotesBlock = () => {
 export const getPrivacyBlock = () => {
     return [
         {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: '*🔒 Privacy Settings*\nWho can see this check-in?',
-            },
-        },
-        {
-            type: 'actions',
+            type: 'input',
             block_id: 'privacy',
-            elements: [
-                {
-                    type: 'static_select',
-                    action_id: 'privacy_select',
-                    initial_option: {
-                        text: { type: 'plain_text', text: '👤 Manager Only' },
-                        value: 'manager_only',
-                    },
-                    options: [
-                        { text: { type: 'plain_text', text: '🔒 Private' }, value: 'private' },
-                        { text: { type: 'plain_text', text: '👤 Manager Only' }, value: 'manager_only' },
-                        { text: { type: 'plain_text', text: '🌐 Team (Public)' }, value: 'public' },
-                    ],
+            element: {
+                type: 'static_select',
+                action_id: 'privacy_select',
+                initial_option: {
+                    text: { type: 'plain_text', text: '👤 Manager Only' },
+                    value: 'manager_only',
                 },
-            ],
-        },
-    ];
-};
-
-/**
- * Submit button
- */
-export const getSubmitBlock = () => {
-    return [
-        {
-            type: 'actions',
-            elements: [
-                {
-                    type: 'button',
-                    text: {
-                        type: 'plain_text',
-                        text: '✅ Submit Check-In',
-                        emoji: true,
-                    },
-                    style: 'primary',
-                    action_id: 'submit_checkin',
-                },
-            ],
+                options: [
+                    { text: { type: 'plain_text', text: '🔒 Private' }, value: 'private' },
+                    { text: { type: 'plain_text', text: '👤 Manager Only' }, value: 'manager_only' },
+                    { text: { type: 'plain_text', text: '🌐 Team (Public)' }, value: 'public' },
+                ],
+            },
+            label: {
+                type: 'plain_text',
+                text: '🔒 Privacy Settings',
+            },
         },
     ];
 };
@@ -282,7 +222,6 @@ export const getCompleteCheckInBlocks = () => {
         ...getMoodBlock(),
         ...getNotesBlock(),
         ...getPrivacyBlock(),
-        ...getSubmitBlock(),
     ];
 };
 
