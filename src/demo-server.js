@@ -198,18 +198,21 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server - BINDING TO 0.0.0.0 FOR RAILWAY
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║                                                          ║
 ║   🏥 CARE OS - Human-Centered Wellbeing System          ║
 ║                                                          ║
-║   Server running at: http://localhost:${PORT}              ║
+║   Server running at: http://0.0.0.0:${PORT}               ║
 ║   Mode: DEMO (In-Memory Storage)                       ║
 ║                                                          ║
 ║   Available Endpoints:                                   ║
 ║   • GET  /health                                         ║
+║   • POST /webhooks/slack/events (Slack Events)           ║
+║   • POST /webhooks/slack/interactions (Interactions)     ║
+║   • POST /webhooks/slack/commands (Slash Commands)       ║
 ║   • POST /api/checkins                                   ║
 ║   • GET  /api/checkins                                   ║
 ║   • POST /api/tasks                                      ║
