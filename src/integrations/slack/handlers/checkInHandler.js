@@ -1,14 +1,21 @@
 import AuthService from '../../../services/AuthService.js';
 import CheckInService from '../../../services/CheckInService.js';
 import { getCompleteCheckInBlocks, getCheckInSuccessBlocks } from '../blocks/checkInBlock.js';
+import { isDatabaseAvailable } from '../../../database/dbStatus.js';
 
 /**
  * Handle check-in interactions
  */
 export const handleCheckInInteraction = async (slackUserId, client, triggerId = null, viewData = null) => {
     try {
-        // Authenticate user
-        const { user, token } = await AuthService.authenticateUser('slack', slackUserId);
+        const hasDatabase = isDatabaseAvailable();
+        let user = null;
+
+        // Only authenticate if database is available
+        if (hasDatabase) {
+            const authResult = await AuthService.authenticateUser('slack', slackUserId);
+            user = authResult.user;
+        }
 
         if (viewData) {
             // Modal was submitted - process the check-in
@@ -23,7 +30,17 @@ export const handleCheckInInteraction = async (slackUserId, client, triggerId = 
                 visibility: values.privacy?.privacy_select?.selected_option?.value || 'manager_only',
             };
 
-            await CheckInService.submitCheckIn(user.id, checkInData);
+            if (hasDatabase && user) {
+                // Save to database
+                await CheckInService.submitCheckIn(user.id, checkInData);
+            } else {
+                // Demo mode - log only
+                console.log('✏️ Check-in (demo mode):', {
+                    user: slackUserId,
+                    data: checkInData,
+                    timestamp: new Date().toISOString()
+                });
+            }
 
             // Send success message to user
             await client.chat.postMessage({

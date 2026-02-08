@@ -1,20 +1,42 @@
 import AuthService from '../../../services/AuthService.js';
 import TaskService from '../../../services/TaskService.js';
 import { getTaskListBlocks } from '../blocks/checkInBlock.js';
+import { isDatabaseAvailable } from '../../../database/dbStatus.js';
 
 /**
  * Handle task interactions
  */
 export const handleTaskInteraction = async (slackUserId, client, triggerId = null) => {
     try {
-        // Authenticate user
-        const { user } = await AuthService.authenticateUser('slack', slackUserId);
+        const hasDatabase = isDatabaseAvailable();
+        let tasks = [];
 
-        // Get user's tasks
-        const tasks = await TaskService.getUserTasks(user.id, user.id, user.role, {
-            status: 'pending',
-            limit: 10,
-        });
+        if (hasDatabase) {
+            // Get tasks from database
+            const { user } = await AuthService.authenticateUser('slack', slackUserId);
+            tasks = await TaskService.getUserTasks(user.id, user.id, user.role, {
+                status: 'pending',
+                limit: 10,
+            });
+        } else {
+            // Demo mode - show sample tasks
+            tasks = [
+                {
+                    id: '1',
+                    title: 'Complete daily check-in',
+                    description: 'Share how you\'re feeling today',
+                    status: 'pending',
+                    priority: 'medium'
+                },
+                {
+                    id: '2',
+                    title: 'Review team recognitions',
+                    description: 'Acknowledge great work from teammates',
+                    status: 'pending',
+                    priority: 'low'
+                }
+            ];
+        }
 
         const blocks = getTaskListBlocks(tasks);
 
@@ -55,9 +77,18 @@ export const handleTaskInteraction = async (slackUserId, client, triggerId = nul
  */
 export const handleTaskCompletion = async (slackUserId, taskId, client) => {
     try {
-        const { user } = await AuthService.authenticateUser('slack', slackUserId);
+        const hasDatabase = isDatabaseAvailable();
 
-        await TaskService.completeTask(taskId, user.id);
+        if (hasDatabase) {
+            const { user } = await AuthService.authenticateUser('slack', slackUserId);
+            await TaskService.completeTask(taskId, user.id);
+        } else {
+            console.log('✏️ Task completed (demo mode):', {
+                user: slackUserId,
+                taskId,
+                timestamp: new Date().toISOString()
+            });
+        }
 
         await client.chat.postMessage({
             channel: slackUserId,

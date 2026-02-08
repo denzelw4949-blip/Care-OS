@@ -126,7 +126,12 @@ class SlackApp {
             await ack();
 
             try {
-                const { user } = await AuthService.authenticateUser('slack', command.user_id);
+                const { isDatabaseAvailable } = await import('./../../database/dbStatus.js');
+
+                // Only authenticate if database is available
+                if (isDatabaseAvailable()) {
+                    const { user } = await AuthService.authenticateUser('slack', command.user_id);
+                }
 
                 const { getCompleteCheckInBlocks } = await import('./blocks/checkInBlock.js');
 

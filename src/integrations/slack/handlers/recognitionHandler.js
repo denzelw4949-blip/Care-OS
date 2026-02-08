@@ -1,13 +1,13 @@
 import AuthService from '../../../services/AuthService.js';
 import RecognitionService from '../../../services/RecognitionService.js';
+import { isDatabaseAvailable } from '../../../database/dbStatus.js';
 
 /**
  * Handle recognition submission
  */
 export const handleRecognitionSubmit = async (slackUserId, viewData, client) => {
     try {
-        // Authenticate user
-        const { user } = await AuthService.authenticateUser('slack', slackUserId);
+        const hasDatabase = isDatabaseAvailable();
 
         const values = viewData.state.values;
 
@@ -19,11 +19,21 @@ export const handleRecognitionSubmit = async (slackUserId, viewData, client) => 
             throw new Error('Missing required fields');
         }
 
-        // Get recipient user
-        const { user: recipient } = await AuthService.authenticateUser('slack', toSlackUserId);
-
-        // Create recognition
-        await RecognitionService.createRecognition(user.id, recipient.id, message, category);
+        if (hasDatabase) {
+            // Authenticate users and save to database
+            const { user } = await AuthService.authenticateUser('slack', slackUserId);
+            const { user: recipient } = await AuthService.authenticateUser('slack', toSlackUserId);
+            await RecognitionService.createRecognition(user.id, recipient.id, message, category);
+        } else {
+            // Demo mode - log only
+            console.log('✏️ Recognition (demo mode):', {
+                from: slackUserId,
+                to: toSlackUserId,
+                message,
+                category,
+                timestamp: new Date().toISOString()
+            });
+        }
 
         // Send confirmation to sender
         await client.chat.postMessage({
