@@ -3,23 +3,41 @@ import config from '../config/index.js';
 
 const { Pool } = pg;
 
-// Create database connection pool
-const pool = new Pool({
-    host: config.database.host,
-    port: config.database.port,
-    database: config.database.name,
-    user: config.database.user,
-    password: config.database.password,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-});
+// Check if DB config is present
+const hasDbConfig = config.database.host && config.database.user && config.database.host !== 'localhost';
 
-// Error handling
-pool.on('error', (err) => {
-    console.error('Unexpected database pool error:', err);
-    process.exit(-1);
-});
+let pool;
+
+if (hasDbConfig) {
+    // Create database connection pool
+    pool = new Pool({
+        host: config.database.host,
+        port: config.database.port,
+        database: config.database.name,
+        user: config.database.user,
+        password: config.database.password,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+    });
+
+    // Error handling
+    pool.on('error', (err) => {
+        console.error('Unexpected database pool error:', err);
+        // Don't exit process in demo mode
+    });
+} else {
+    console.warn('⚠️ No Database Configuration found. Running in MOCK DB mode.');
+    // Mock pool for demo mode
+    pool = {
+        connect: async () => ({
+            query: async () => ({ rows: [] }),
+            release: () => { },
+        }),
+        end: async () => { },
+        on: () => { },
+    };
+}
 
 /**
  * Execute a query with optional user context for RLS
