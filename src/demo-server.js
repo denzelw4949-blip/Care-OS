@@ -8,6 +8,13 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Diagnostic logging for Railway
+console.log('🔍 PORT DIAGNOSTIC:');
+console.log('  - process.env.PORT:', process.env.PORT);
+console.log('  - Actual PORT value:', PORT);
+console.log('  - PORT type:', typeof PORT);
+
+
 // --- CRASH PREVENTION (Moved to Top) ---
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -227,7 +234,9 @@ let slackApp;
 ║                                                          ║
 ║   🏥 CARE OS - Human-Centered Wellbeing System          ║
 ║                                                          ║
-║   Server running at: http://0.0.0.0:${PORT}               ║
+║   ✅ SERVER SUCCESSFULLY STARTED                         ║
+║   🌍 Listening on: 0.0.0.0:${PORT}                       ║
+║   📊 PORT from env: ${process.env.PORT || 'NOT SET (using 3000)'}  ║
 ║   Mode: DEMO (In-Memory Storage)                       ║
 ║                                                          ║
 ║   Available Endpoints:                                   ║
